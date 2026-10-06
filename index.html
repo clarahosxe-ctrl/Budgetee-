@@ -221,7 +221,6 @@ h1.page{margin:0 0 14px;font-size:24px;font-weight:800;letter-spacing:-.02em;}
   <div class="toast" id="toast"></div>
 </div>
 
-<script src="native.js"></script>
 <script>
 /* =========================================================
    Utilitaires
@@ -837,19 +836,10 @@ function openCat(id,type){
 }
 
 /* ---------- sauvegarde ---------- */
-async function exportData(){
-  const name = `budget-sauvegarde-${TODAY}.json`, json = JSON.stringify(db,null,2);
-  const P = window.Native && Native.isNative ? Native : null;
-  if(P){ // application native : fichier dans le cache puis feuille de partage
-    try{
-      const r = await P.Filesystem.writeFile({path:name, data:json, directory:'CACHE', encoding:'utf8'});
-      await P.Share.share({title:'Sauvegarde Budget', url:r.uri, dialogTitle:'Enregistrer la sauvegarde'});
-      return;
-    }catch(e){ if(e && /cancel/i.test(e.message||'')) return; }
-  }
-  const blob = new Blob([json],{type:'application/json'});
+function exportData(){
+  const blob = new Blob([JSON.stringify(db,null,2)],{type:'application/json'});
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob); a.download = name;
+  a.href = URL.createObjectURL(blob); a.download = `budget-sauvegarde-${TODAY}.json`;
   document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),2000);
 }
 function importFile(f){
@@ -944,21 +934,9 @@ document.addEventListener('click',e=>{
   },{passive:true});
 })();
 
-/* Intégration native (Capacitor) : bouton retour Android, barre d'état */
-(function(){
-  const P = window.Native && Native.isNative ? Native : null; if(!P) return;
-  if(P.StatusBar){ try{ P.StatusBar.setStyle({style:'LIGHT'}); P.StatusBar.setBackgroundColor({color:'#FBFAFF'}); }catch(e){} }
-  if(P.App) P.App.addListener('backButton',()=>{
-    if($('#ov2').classList.contains('open')) closeSheet(2);
-    else if($('#ov1').classList.contains('open')) closeSheet(1);
-    else if(ui.tab!=='cal'){ ui.tab='cal'; render(); }
-    else P.App.exitApp();
-  });
-})();
-
 load();
 render();
-if('serviceWorker' in navigator && location.protocol.startsWith('http') && !(window.Native && Native.isNative)){ navigator.serviceWorker.register('sw.js').catch(()=>{}); }
+if('serviceWorker' in navigator && location.protocol.startsWith('http')){ navigator.serviceWorker.register('sw.js').catch(()=>{}); }
 </script>
 </body>
 </html>
