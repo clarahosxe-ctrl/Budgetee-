@@ -247,6 +247,8 @@ const diffDays = (a,b) => Math.round((parse(a)-parse(b))/86400000);
 const monthStart = s => s.slice(0,8)+'01';
 const monthEnd = s => { const d = parse(s); return iso(new Date(d.getFullYear(), d.getMonth()+1, 0)); };
 const weekStart = s => { const d = parse(s); const off = (d.getDay()+6)%7; d.setDate(d.getDate()-off); return iso(d); };
+const num = v => { const n = parseFloat(String(v??'').replace(/[\s\u00a0\u202f]/g,'').replace(',','.')); return isNaN(n)?0:n; };
+const inV = n => (n||n===0) && n!=='' ? String(n).replace('.',',') : '';
 const uid = () => Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-4);
 const esc = s => String(s??'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const TODAY = iso(new Date());
@@ -632,7 +634,7 @@ function renderSettings(){
     <div class="panel">
       <h2>Point de départ du solde</h2>
       <div class="row2">
-        <label class="field"><span>Solde (€)</span><input id="s-bal" type="number" inputmode="decimal" step="0.01" value="${s.startBalance}"></label>
+        <label class="field"><span>Solde (€)</span><input id="s-bal" type="text" inputmode="decimal" value="${inV(s.startBalance)}"></label>
         <label class="field"><span>À la date du</span><input id="s-date" type="date" value="${s.startDate}"></label>
       </div>
       <div class="note" style="margin-bottom:0">Le solde affiché = ce solde + toutes les entrées et dépenses à partir de cette date.</div>
@@ -659,7 +661,7 @@ function renderSettings(){
       <button class="btn yellow" data-act="reset-demo">Recharger mes données d'exemple</button>
       <button class="btn del" data-act="reset-empty" style="margin-top:8px">Tout effacer et repartir de zéro</button>
     </div>`;
-  $('#s-bal').addEventListener('change',e=>{ db.settings.startBalance = parseFloat(e.target.value)||0; save(); toast('Solde de départ mis à jour'); });
+  $('#s-bal').addEventListener('change',e=>{ db.settings.startBalance = num(e.target.value); save(); toast('Solde de départ mis à jour'); });
   $('#s-date').addEventListener('change',e=>{ if(e.target.value){ db.settings.startDate = e.target.value; save(); toast('Date de départ mise à jour'); } });
   $('#file-in').addEventListener('change',e=>{ const f = e.target.files[0]; if(f) importFile(f); e.target.value=''; });
 }
@@ -700,7 +702,7 @@ function openForm(init){
       <button data-v="expense" class="out ${F.type==='expense'?'on':''}">Dépense</button>
       <button data-v="income" class="in ${F.type==='income'?'on':''}">Entrée d'argent</button>
     </div>
-    <div class="amount-wrap"><input id="f-amount" class="${F.type==='income'?'in':'out'}" type="number" inputmode="decimal" step="0.01" placeholder="0" value="${F.amount}"><span>€</span></div>
+    <div class="amount-wrap"><input id="f-amount" class="${F.type==='income'?'in':'out'}" type="text" inputmode="decimal" placeholder="0" value="${inV(F.amount)}"><span>€</span></div>
     <div class="items-box">
       <span class="lbl2">Détail (facultatif)</span>
       <div class="note" style="margin:-2px 0 8px">Découpe cette ligne en plusieurs postes (ex. charges perso). Le montant devient la somme des postes.</div>
@@ -742,7 +744,7 @@ function openForm(init){
   drawCats(); drawItems();
   $('#f-items').addEventListener('input',e=>{
     const i = e.target.dataset.i; if(i===undefined) return;
-    if(e.target.dataset.f==='label') F.items[i].label = e.target.value; else F.items[i].amount = Math.abs(parseFloat(e.target.value))||0;
+    if(e.target.dataset.f==='label') F.items[i].label = e.target.value; else F.items[i].amount = Math.abs(num(e.target.value));
     syncTotal();
   });
   $('#f-type').addEventListener('click',e=>{
@@ -770,12 +772,12 @@ function itemsTotal(){ return Math.round(F.items.reduce((s,i)=>s+(i.amount||0),0
 function syncTotal(){
   const a = $('#f-amount'); if(!a) return;
   a.readOnly = F.items.length>0;
-  if(F.items.length) a.value = itemsTotal();
+  if(F.items.length) a.value = inV(itemsTotal());
 }
 function drawItems(){
   $('#f-items').innerHTML = F.items.map((it,i)=>`<div class="item-row">
     <input class="inp" data-i="${i}" data-f="label" type="text" placeholder="Poste (ex. Téléphone)" value="${esc(it.label)}" autocomplete="off">
-    <input class="inp amt-in" data-i="${i}" data-f="amount" type="number" inputmode="decimal" step="0.01" placeholder="0" value="${it.amount||''}">
+    <input class="inp amt-in" data-i="${i}" data-f="amount" type="text" inputmode="decimal" placeholder="0" value="${inV(it.amount||'')}">
     <button class="x" data-act="item-del" data-i="${i}" aria-label="Retirer">✕</button></div>`).join('');
   $('#f-show-w').classList.toggle('hidden',!F.items.length);
   syncTotal();
@@ -786,7 +788,7 @@ function drawCats(){
 }
 function readForm(){
   const items = F.items.filter(i=>i.amount>0).map(i=>({id:i.id,label:i.label.trim(),amount:i.amount}));
-  const amount = items.length ? Math.round(items.reduce((s,i)=>s+i.amount,0)*100)/100 : Math.abs(parseFloat($('#f-amount').value));
+  const amount = items.length ? Math.round(items.reduce((s,i)=>s+i.amount,0)*100)/100 : Math.abs(num($('#f-amount').value));
   if(!amount){ toast('Entre un montant'); $('#f-amount').focus(); return null; }
   const date = $('#f-date').value; if(!date){ toast('Choisis une date'); return null; }
   const kind = $('#f-rec').value;
