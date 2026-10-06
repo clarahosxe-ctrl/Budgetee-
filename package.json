@@ -1,0 +1,28 @@
+{
+  "name": "budget-mobile",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Budget — calendrier de budget personnel (application mobile Android / iOS)",
+  "scripts": {
+    "serve": "npx --yes serve www",
+    "sync": "npm run build && cap sync",
+    "android": "npm run build && (test -d android || cap add android) && cap sync android && cap open android",
+    "ios": "npm run build && (test -d ios || cap add ios) && cap sync ios && cap open ios",
+    "assets": "capacitor-assets generate --iconBackgroundColor '#7C5CFC' --splashBackgroundColor '#FBFAFF'",
+    "build": "esbuild src/native.js --bundle --minify --outfile=www/native.js"
+  },
+  "dependencies": {
+    "@capacitor/android": "^7.0.0",
+    "@capacitor/app": "^7.0.0",
+    "@capacitor/core": "^7.0.0",
+    "@capacitor/filesystem": "^7.0.0",
+    "@capacitor/ios": "^7.0.0",
+    "@capacitor/share": "^7.0.0",
+    "@capacitor/status-bar": "^7.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^7.0.0",
+    "esbuild": "^0.25.0"
+  }
+}

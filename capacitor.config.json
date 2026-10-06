@@ -1,0 +1,8 @@
+{
+  "appId": "com.budgetee.app",
+  "appName": "Budget",
+  "webDir": "www",
+  "backgroundColor": "#FBFAFF",
+  "android": { "allowMixedContent": false },
+  "ios": { "contentInset": "never" }
+}

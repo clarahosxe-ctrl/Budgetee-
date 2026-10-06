@@ -1,0 +1,6 @@
+node_modules/
+android/build/
+ios/App/Pods/
+.DS_Store
+*.apk
+*.aab
