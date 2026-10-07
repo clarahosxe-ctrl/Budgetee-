@@ -183,6 +183,10 @@ input,select{font:inherit;color:inherit;}
 .item-row .amt-in{flex:0 0 92px;text-align:right;}
 .item-row .x{flex:none;background:var(--surface);}
 .amount-wrap input:read-only{opacity:.85;}
+.bal-wrap{display:flex;gap:8px;}
+.bal-wrap .inp,.bal-wrap input{min-width:0;}
+.sign-btn{order:-1;flex:none;width:48px;min-height:48px;border-radius:14px;background:var(--surface-2);font-size:20px;font-weight:750;}
+.sign-btn:active{transform:scale(.94);}
 .choice{display:block;width:100%;text-align:left;padding:15px 16px;border-radius:16px;background:var(--surface-2);font-weight:650;margin-bottom:8px;font-size:15px;}
 .choice small{display:block;font-weight:500;color:var(--ink-2);font-size:12.5px;margin-top:2px;}
 .choice.danger{background:#FFEDEE;color:var(--danger);}
@@ -247,7 +251,7 @@ const diffDays = (a,b) => Math.round((parse(a)-parse(b))/86400000);
 const monthStart = s => s.slice(0,8)+'01';
 const monthEnd = s => { const d = parse(s); return iso(new Date(d.getFullYear(), d.getMonth()+1, 0)); };
 const weekStart = s => { const d = parse(s); const off = (d.getDay()+6)%7; d.setDate(d.getDate()-off); return iso(d); };
-const num = v => { const n = parseFloat(String(v??'').replace(/[\s\u00a0\u202f]/g,'').replace(',','.')); return isNaN(n)?0:n; };
+const num = v => { const n = parseFloat(String(v??'').replace(/[\s\u00a0\u202f]/g,'').replace(/[−–]/g,'-').replace(',','.')); return isNaN(n)?0:n; };
 const inV = n => (n||n===0) && n!=='' ? String(n).replace('.',',') : '';
 const uid = () => Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-4);
 const esc = s => String(s??'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -634,7 +638,7 @@ function renderSettings(){
     <div class="panel">
       <h2>Point de départ du solde</h2>
       <div class="row2">
-        <label class="field"><span>Solde (€)</span><input id="s-bal" type="text" inputmode="decimal" value="${inV(s.startBalance)}"></label>
+        <label class="field"><span>Solde (€)</span><div class="bal-wrap"><input id="s-bal" type="text" inputmode="decimal" value="${inV(s.startBalance)}"><button type="button" class="sign-btn" id="s-sign" aria-label="Changer le signe">±</button></div></label>
         <label class="field"><span>À la date du</span><input id="s-date" type="date" value="${s.startDate}"></label>
       </div>
       <div class="note" style="margin-bottom:0">Le solde affiché = ce solde + toutes les entrées et dépenses à partir de cette date.</div>
@@ -662,6 +666,7 @@ function renderSettings(){
       <button class="btn del" data-act="reset-empty" style="margin-top:8px">Tout effacer et repartir de zéro</button>
     </div>`;
   $('#s-bal').addEventListener('change',e=>{ db.settings.startBalance = num(e.target.value); save(); toast('Solde de départ mis à jour'); });
+  $('#s-sign').addEventListener('click',e=>{ e.preventDefault(); const v = -num($('#s-bal').value); $('#s-bal').value = inV(v); db.settings.startBalance = v; save(); toast('Solde de départ mis à jour'); });
   $('#s-date').addEventListener('change',e=>{ if(e.target.value){ db.settings.startDate = e.target.value; save(); toast('Date de départ mise à jour'); } });
   $('#file-in').addEventListener('change',e=>{ const f = e.target.files[0]; if(f) importFile(f); e.target.value=''; });
 }
