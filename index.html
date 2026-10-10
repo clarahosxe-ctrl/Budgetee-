@@ -1014,7 +1014,21 @@ document.addEventListener('click',e=>{
 
 load();
 render();
-if('serviceWorker' in navigator && location.protocol.startsWith('http')){ navigator.serviceWorker.register('sw.js').catch(()=>{}); }
+/* Mises à jour automatiques : nouvelle version détectée → rechargement */
+if('serviceWorker' in navigator && location.protocol.startsWith('http')){
+  const had = !!navigator.serviceWorker.controller;
+  let reloaded = false;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{
+    if(!had || reloaded) return;
+    reloaded = true;
+    if(!document.querySelector('.overlay.open')) location.reload();
+  });
+  navigator.serviceWorker.register('sw.js').then(reg=>{
+    const check = ()=>reg.update().catch(()=>{});
+    document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') check(); });
+    setInterval(check, 30*60*1000);
+  }).catch(()=>{});
+}
 </script>
 </body>
 </html>
