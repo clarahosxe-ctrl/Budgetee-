@@ -139,7 +139,7 @@ input,select{font:inherit;color:inherit;}
   border-top:1px solid var(--line);padding:6px 10px calc(6px + var(--safe-b));z-index:10;
 }
 .nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;font-weight:650;color:var(--ink-3);padding:6px 0;border-radius:14px;}
-.nav button span{font-size:21px;line-height:1;filter:grayscale(1) opacity(.55);transition:all .15s;}
+.nav button span{display:grid;place-items:center;height:26px;line-height:1;filter:grayscale(1) opacity(.55);transition:all .15s;}
 .nav button.on{color:var(--violet);}
 .nav button.on span{filter:none;transform:translateY(-1px);}
 
@@ -293,9 +293,9 @@ body.glass{background:var(--g-base);}
   <div id="app"></div>
   <button class="fab" id="fab" aria-label="Add">+</button>
   <nav class="nav" id="nav">
-    <button data-tab="cal" class="on"><span>📅</span><b data-i18n="Calendrier">Calendrier</b></button>
-    <button data-tab="stats"><span>📊</span><b data-i18n="Répartition">Répartition</b></button>
-    <button data-tab="set"><span>⚙️</span><b data-i18n="Réglages">Réglages</b></button>
+    <button data-tab="cal" class="on"><span><svg viewBox="0 0 24 24" width="26" height="26" fill="none" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="4.2" stroke="currentColor" stroke-width="1.8"/><path d="M3.5 10h17M8 3v3.6M16 3v3.6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="8.3" cy="14.7" r="1.5" fill="#FF5FA2"/><circle cx="12" cy="14.7" r="1.5" fill="#12A66B"/><circle cx="15.7" cy="14.7" r="1.5" fill="#FFC93C"/></svg></span><b data-i18n="Calendrier">Calendrier</b></button>
+    <button data-tab="stats"><span><svg viewBox="0 0 24 24" width="26" height="26" fill="none" aria-hidden="true" stroke-width="3.4" stroke-linecap="round"><g transform="rotate(-90 12 12)"><circle cx="12" cy="12" r="7.6" stroke="#5B8DEF" stroke-dasharray="17.8 29.9"/><circle cx="12" cy="12" r="7.6" stroke="#FF5FA2" stroke-dasharray="11.6 36.1" stroke-dashoffset="-20.3"/><circle cx="12" cy="12" r="7.6" stroke="#FFC93C" stroke-dasharray="6.4 41.3" stroke-dashoffset="-34.6"/></g></svg></span><b data-i18n="Répartition">Répartition</b></button>
+    <button data-tab="set"><span><svg viewBox="0 0 24 24" width="26" height="26" fill="none" aria-hidden="true"><path d="M3.5 6.5h17M3.5 12h17M3.5 17.5h17" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="8" cy="6.5" r="2.5" fill="#5B8DEF" stroke="#fff" stroke-width="1.2"/><circle cx="16" cy="12" r="2.5" fill="#FF5FA2" stroke="#fff" stroke-width="1.2"/><circle cx="10.5" cy="17.5" r="2.5" fill="#FFC93C" stroke="#fff" stroke-width="1.2"/></svg></span><b data-i18n="Réglages">Réglages</b></button>
   </nav>
   <div class="overlay" id="ov1"><div class="sheet" id="sh1"></div></div>
   <div class="overlay top2" id="ov2"><div class="sheet" id="sh2"></div></div>
