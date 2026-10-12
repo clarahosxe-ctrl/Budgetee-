@@ -152,6 +152,7 @@ function normalize(d){
   d.settings.theme = Object.assign({}, DEFAULT_THEME, d.settings.theme);
   d.settings.home = mergeHome(d.settings.home);
   d.settings.name = d.settings.name || '';
+  d.settings.upcomingDays = Math.min(60,Math.max(1,parseInt(d.settings.upcomingDays)||2));
   d.goals = Array.isArray(d.goals) ? d.goals : [];
   d.updatedAt = d.updatedAt || 0;
   return d;
@@ -549,14 +550,19 @@ function wRunway(){
   </div>`;
 }
 function wUpcoming(){
-  const occ = occurrences(TODAY,addDays(TODAY,6)).sort((a,b)=>a.date.localeCompare(b.date) || (a.type===b.type?0:a.type==='income'?-1:1));
+  const n = db.settings.upcomingDays;
+  const occ = occurrences(TODAY,addDays(TODAY,n-1)).sort((a,b)=>a.date.localeCompare(b.date) || (a.type===b.type?0:a.type==='income'?-1:1));
+  const range = n===1 ? t("Aujourd'hui seulement") : n===2 ? t("Aujourd'hui et demain") : t("Aujourd'hui et les {n} jours suivants",{n:n-1});
   let body;
-  if(!occ.length) body = `<div class="sub">${t('Rien de prévu dans les 7 prochains jours.')}</div>`;
+  if(!occ.length) body = `<div class="sub">${t('Rien de prévu sur cette période.')}</div>`;
   else{
     const days = {}; occ.forEach(o=>(days[o.date]=days[o.date]||[]).push(o));
     body = Object.keys(days).map((d,i)=>`<div class="up-head ${i?'':'first'}"><span style="text-transform:capitalize">${dayLabel(d)}</span><span class="num ${netOf(days[d])>=0?'pos':'neg'}">${fmtS(netOf(days[d]))}</span></div>${days[d].map(itemHtml).join('')}`).join('');
   }
-  return `<div class="panel"><h2>${t('Prochains mouvements')}</h2>${body}
+  return `<div class="panel"><h2>${t('Prochains mouvements')}</h2>
+    <div class="up-ctl"><span>${range}</span>
+      <span class="stepper"><button data-act="up-days" data-d="-1" ${n<=1?'disabled':''} aria-label="${t('Moins de jours')}">−</button><b class="num">${n} ${n>1?t('jours'):t('jour')}</b><button data-act="up-days" data-d="1" ${n>=60?'disabled':''} aria-label="${t('Plus de jours')}">+</button></span></div>
+    ${body}
     <button class="add-inline" style="margin:8px 0 0" data-act="goto-cal">${t('Voir le calendrier')}</button></div>`;
 }
 function wAlerts(){
@@ -1186,6 +1192,7 @@ document.addEventListener('click',e=>{
     case 'reset-demo': choose(t('Charger un exemple ?'),t("Tout ce que tu as saisi sera remplacé par quelques lignes d'exemple. Tu pourras ensuite tout modifier ou effacer."),[{v:'ok',label:t('Charger l\'exemple'),danger:true},{v:'no',label:t('Annuler')}],x=>{ if(x==='ok'){ const d = freshDb(true); d.settings.tutorialDone = true; d.tx = exampleTx(); d.cloudUid = db.cloudUid; replaceDb(d,false); save(); toast(t('Exemple chargé')); } }); break;
     case 'reset-empty': choose(t('Tout effacer ?'),t('Toutes tes lignes seront supprimées. Pense à exporter une sauvegarde avant.'),[{v:'ok',label:t('Tout effacer'),danger:true},{v:'no',label:t('Annuler')}],x=>{ if(x==='ok'){ const d = freshDb(true); d.settings.tutorialDone = true; d.cloudUid = db.cloudUid; replaceDb(d,false); save(); toast(t('Application vidée')); } }); break;
     case 'theme-reset': { const m = db.settings.theme.mode; db.settings.theme = {...DEFAULT_THEME, mode:m}; applyTheme(); save(); render(); break; }
+    case 'up-days': db.settings.upcomingDays = Math.min(60,Math.max(1,db.settings.upcomingDays+(+el.dataset.d))); save(); render(); break;
     case 'quick': openForm({mode:'new', type:el.dataset.type, date:TODAY}); break;
     case 'goto-cal': ui.tab = 'cal'; ui.cursor = TODAY; render(); $('#app').scrollTop = 0; break;
     case 'home-cfg': openHomeCfg(); break;

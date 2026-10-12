@@ -102,6 +102,8 @@ const DICT = {
     'Prochains mouvements':'Upcoming',
     'Rien de prévu dans les 7 prochains jours.':'Nothing planned in the next 7 days.',
     'Voir le calendrier':'See the calendar',
+    "Aujourd'hui seulement":'Today only',"Aujourd'hui et demain":'Today and tomorrow',"Aujourd'hui et les {n} jours suivants":'Today and the next {n} days',
+    'Rien de prévu sur cette période.':'Nothing planned in this period.','Moins de jours':'Fewer days','Plus de jours':'More days','jour':'day',
     'Alertes':'Alerts',
     "Ton solde est négatif aujourd'hui ({x}).":'Your balance is negative today ({x}).',
     "Ton solde passera sous zéro le {d} (jusqu'à {x}).":'Your balance will drop below zero on {d} (down to {x}).',
