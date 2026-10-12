@@ -60,7 +60,8 @@ const inV = n => (n||n===0) && n!=='' ? String(n).replace('.',DEC) : '';
 /* =========================================================
    Apparence : classique ou « Liquid Glass » (réglable)
 ========================================================= */
-const DEFAULT_THEME = {mode:'classic', bg:'ocean', blur:22, transparency:50, shine:60};
+const DEFAULT_THEME = {mode:'classic', scheme:'light', bg:'ocean', blur:22, transparency:50, shine:60};
+const darkMQ = window.matchMedia ? matchMedia('(prefers-color-scheme: dark)') : null;
 const GBG = (c1,c2,c3,base) => `radial-gradient(60% 42% at 12% 10%, ${c1} 0%, transparent 70%), radial-gradient(55% 42% at 92% 34%, ${c2} 0%, transparent 70%), radial-gradient(65% 50% at 28% 96%, ${c3} 0%, transparent 70%), ${base}`;
 const BGS = {
   ocean:   {name:'Océan',             base:'#EAF4FF', c:['#7DD3FC','#5EEAD4','#A5B4FC']},
@@ -70,16 +71,19 @@ const BGS = {
   rose:    {name:'Rose',              base:'#FFF0F5', c:['#FDA4AF','#FBCFE8','#FDE68A']},
   graphite:{name:'Graphite',          base:'#EEF1F5', c:['#CBD5E1','#94A3B8','#E2E8F0']},
 };
+if(darkMQ) (darkMQ.addEventListener ? darkMQ.addEventListener('change',()=>applyTheme()) : darkMQ.addListener(()=>applyTheme()));
 function applyTheme(){
   const th = Object.assign({}, DEFAULT_THEME, db && db.settings.theme);
   const bg = BGS[th.bg] || BGS.ocean, r = document.documentElement.style;
+  const dark = th.mode==='classic' && (th.scheme==='dark' || (th.scheme==='auto' && darkMQ && darkMQ.matches));
   document.body.classList.toggle('glass', th.mode==='glass');
+  document.body.classList.toggle('dark', dark);
   r.setProperty('--g-blur', th.blur+'px');
   r.setProperty('--g-a', (0.92 - th.transparency/100*0.74).toFixed(3));
   r.setProperty('--g-shine', (0.25 + th.shine/100*0.7).toFixed(3));
   r.setProperty('--g-bg', GBG(bg.c[0],bg.c[1],bg.c[2],bg.base));
   r.setProperty('--g-base', bg.base);
-  const m = document.querySelector('meta[name=theme-color]'); if(m) m.content = th.mode==='glass' ? bg.base : '#FAFAFB';
+  const m = document.querySelector('meta[name=theme-color]'); if(m) m.content = th.mode==='glass' ? bg.base : dark ? '#14141B' : '#FAFAFB';
 }
 
 /* =========================================================
@@ -465,11 +469,11 @@ function renderStats(){
     <div class="panel">
       <h2>${t('Solde sur 12 mois')}</h2>
       <svg viewBox="0 0 ${W} ${H}" width="100%" style="display:block;overflow:visible">
-        <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1C1C26" stop-opacity=".12"/><stop offset="1" stop-color="#1C1C26" stop-opacity="0"/></linearGradient></defs>
+        <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--ink)" stop-opacity=".12"/><stop offset="1" style="stop-color:var(--ink)" stop-opacity="0"/></linearGradient></defs>
         ${min<0?`<line x1="${P}" x2="${W-P}" y1="${Y(0)}" y2="${Y(0)}" stroke="#FF5FA2" stroke-width="1" stroke-dasharray="4 4"/>`:''}
         <path d="${area}" fill="url(#g)"/>
-        <path d="${line}" fill="none" stroke="#1C1C26" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-        ${pts.map((p,i)=>`<circle cx="${X(i)}" cy="${Y(p.v)}" r="3" fill="${p.v<0?'#FF5FA2':'#1C1C26'}"/>`).join('')}
+        <path d="${line}" fill="none" style="stroke:var(--ink)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+        ${pts.map((p,i)=>`<circle cx="${X(i)}" cy="${Y(p.v)}" r="3" style="fill:${p.v<0?'#FF5FA2':'var(--ink)'}"/>`).join('')}
         ${pts.map((p,i)=> i%2===0?`<text x="${X(i)}" y="${H-2}" font-size="9" fill="#A29EBA" text-anchor="middle">${p.label}</text>`:'').join('')}
       </svg>
       <div class="note" style="margin-bottom:0">${t('Point le plus bas :')} <b class="num" style="color:${lowest.v<0?'#D9387F':'var(--green)'}">${fmt(lowest.v)}</b> (${lowest.label})</div>
@@ -623,8 +627,8 @@ function wCharts(){
   const line = pts.map((v,i)=>`${i?'L':'M'}${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join(' ');
   const spark = `<svg viewBox="0 0 ${W} ${H}" width="100%" style="display:block;overflow:visible">
     ${min<0?`<line x1="${P}" x2="${W-P}" y1="${Y(0)}" y2="${Y(0)}" stroke="#FF5FA2" stroke-width="1" stroke-dasharray="4 4"/>`:''}
-    <path d="${line} L${X(N-1)},${Y(min)} L${X(0)},${Y(min)} Z" fill="rgba(28,28,38,.08)"/>
-    <path d="${line}" fill="none" stroke="#1C1C26" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="${line} L${X(N-1)},${Y(min)} L${X(0)},${Y(min)} Z" style="fill:var(--ink)" fill-opacity=".08"/>
+    <path d="${line}" fill="none" style="stroke:var(--ink)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
     <circle cx="${X(0)}" cy="${Y(base)}" r="3.5" fill="#FF5FA2"/></svg>`;
   // anneau des dépenses du mois
   const occ = occurrences(monthStart(TODAY),monthEnd(TODAY)).filter(o=>o.type==='expense'), g = {};
@@ -724,6 +728,11 @@ function themePanel(){
       <button data-theme-mode="classic" class="${glass?'':'on'}">${t('Classique')}</button>
       <button data-theme-mode="glass" class="${glass?'on':''}">${t('Liquid Glass')}</button>
     </div>
+    ${glass?'':`<span class="lbl2">${t('Mode')}</span>
+    <div class="type-seg neutral" style="margin-bottom:8px">
+      ${[['light','Clair'],['dark','Sombre'],['auto','Automatique']].map(([k,l])=>`<button data-theme-scheme="${k}" class="${th.scheme===k?'on':''}">${t(l)}</button>`).join('')}
+    </div>
+    <div class="note" style="margin-bottom:0">${t('Automatique suit le réglage de ton téléphone.')}</div>`}
     ${glass?`
     <span class="lbl2">${t('Fond')}</span>
     <div class="bgs">${Object.entries(BGS).map(([k,b])=>`<button class="bgsw ${k===th.bg?'on':''}" data-bg="${k}" style="background:${GBG(b.c[0],b.c[1],b.c[2],b.base)}" aria-label="${t(b.name)}"><i>${t(b.name)}</i></button>`).join('')}</div>
@@ -1122,6 +1131,8 @@ document.addEventListener('click',e=>{
 
   const tm = e.target.closest('[data-theme-mode]');
   if(tm){ db.settings.theme.mode = tm.dataset.themeMode; applyTheme(); save(); render(); return; }
+  const ts = e.target.closest('[data-theme-scheme]');
+  if(ts){ db.settings.theme.scheme = ts.dataset.themeScheme; applyTheme(); save(); render(); return; }
   const tb = e.target.closest('[data-bg]');
   if(tb){ db.settings.theme.bg = tb.dataset.bg; applyTheme(); save(); render(); return; }
 

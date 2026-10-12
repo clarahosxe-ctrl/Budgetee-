@@ -143,6 +143,7 @@ const DICT = {
     "La page Accueil résume ta journée : solde, reste à vivre, prochains mouvements, alertes, crédits et objectifs d'épargne. Tu choisis les cartes et leur ordre avec « Personnaliser l'accueil ».":'The Home page sums up your day: balance, money left to spend, upcoming entries, alerts, loans and savings goals. You choose the cards and their order with “Customize home”.',
 
     // apparence
+    'Mode':'Mode','Clair':'Light','Sombre':'Dark','Automatique':'Automatic','Automatique suit le réglage de ton téléphone.':'Automatic follows your phone setting.',
     'Apparence':'Appearance','Classique':'Classic','Liquid Glass':'Liquid Glass','Fond':'Background',
     'Transparence':'Transparency','Flou':'Blur','Reflets':'Highlights',
     "Réinitialiser l'apparence":'Reset appearance',
