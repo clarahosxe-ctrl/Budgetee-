@@ -140,7 +140,7 @@ function detectPrefs(){
 function freshDb(keepPrefs){
   const p = keepPrefs && db ? {lang:db.settings.lang,currency:db.settings.currency} : detectPrefs();
   return {v:1, cats:JSON.parse(JSON.stringify(DEFAULT_CATS)), tx:[], goals:[], updatedAt:Date.now(),
-    settings:{startBalance:0, startDate:monthStart(TODAY), lang:p.lang, currency:p.currency, tutorialDone:false, theme:keepPrefs&&db?{...db.settings.theme}:{...DEFAULT_THEME}, home:keepPrefs&&db?JSON.parse(JSON.stringify(db.settings.home)):mergeHome(), name:keepPrefs&&db?db.settings.name:''}};
+    settings:{startBalance:0, startDate:monthStart(TODAY), lang:p.lang, currency:p.currency, tutorialDone:false, theme:keepPrefs&&db?{...db.settings.theme}:{...DEFAULT_THEME}, home:keepPrefs&&db?JSON.parse(JSON.stringify(db.settings.home)):mergeHome(), name:keepPrefs&&db?db.settings.name:'', upcomingDays:keepPrefs&&db?db.settings.upcomingDays:2}};
 }
 function normalize(d){
   d.settings = d.settings || {};
@@ -550,7 +550,7 @@ function wRunway(){
   </div>`;
 }
 function wUpcoming(){
-  const n = db.settings.upcomingDays;
+  const n = db.settings.upcomingDays || 2;
   const occ = occurrences(TODAY,addDays(TODAY,n-1)).sort((a,b)=>a.date.localeCompare(b.date) || (a.type===b.type?0:a.type==='income'?-1:1));
   const range = n===1 ? t("Aujourd'hui seulement") : n===2 ? t("Aujourd'hui et demain") : t("Aujourd'hui et les {n} jours suivants",{n:n-1});
   let body;
@@ -1192,7 +1192,7 @@ document.addEventListener('click',e=>{
     case 'reset-demo': choose(t('Charger un exemple ?'),t("Tout ce que tu as saisi sera remplacé par quelques lignes d'exemple. Tu pourras ensuite tout modifier ou effacer."),[{v:'ok',label:t('Charger l\'exemple'),danger:true},{v:'no',label:t('Annuler')}],x=>{ if(x==='ok'){ const d = freshDb(true); d.settings.tutorialDone = true; d.tx = exampleTx(); d.cloudUid = db.cloudUid; replaceDb(d,false); save(); toast(t('Exemple chargé')); } }); break;
     case 'reset-empty': choose(t('Tout effacer ?'),t('Toutes tes lignes seront supprimées. Pense à exporter une sauvegarde avant.'),[{v:'ok',label:t('Tout effacer'),danger:true},{v:'no',label:t('Annuler')}],x=>{ if(x==='ok'){ const d = freshDb(true); d.settings.tutorialDone = true; d.cloudUid = db.cloudUid; replaceDb(d,false); save(); toast(t('Application vidée')); } }); break;
     case 'theme-reset': { const m = db.settings.theme.mode; db.settings.theme = {...DEFAULT_THEME, mode:m}; applyTheme(); save(); render(); break; }
-    case 'up-days': db.settings.upcomingDays = Math.min(60,Math.max(1,db.settings.upcomingDays+(+el.dataset.d))); save(); render(); break;
+    case 'up-days': db.settings.upcomingDays = Math.min(60,Math.max(1,(db.settings.upcomingDays||2)+(+el.dataset.d))); save(); render(); break;
     case 'quick': openForm({mode:'new', type:el.dataset.type, date:TODAY}); break;
     case 'goto-cal': ui.tab = 'cal'; ui.cursor = TODAY; render(); $('#app').scrollTop = 0; break;
     case 'home-cfg': openHomeCfg(); break;
