@@ -1,7 +1,7 @@
 # Budget
 
 Web app de budget perso (calendrier, récurrences, détail des lignes, répartition, projection du solde), pensée pour le téléphone.
-Français / English, monnaie au choix, tutoriel de démarrage, fonctionne hors ligne, mise à jour automatique.
+Français / English, monnaie au choix, thème « Liquid Glass » réglable (fond, transparence, flou, reflets), tutoriel de démarrage, fonctionne hors ligne, mise à jour automatique.
 
 ## Mise en ligne (GitHub Pages)
 

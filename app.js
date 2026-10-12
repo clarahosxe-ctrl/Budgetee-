@@ -39,6 +39,7 @@ function applyPrefs(){
   document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.dataset.i18n); });
   const fab = $('#fab'); if(fab) fab.setAttribute('aria-label', t('Ajouter'));
   document.title = t('Budget');
+  applyTheme();
 }
 const curSymbol = () => { try{ return nf.formatToParts(0).find(p=>p.type==='currency').value; }catch(e){ return CUR; } };
 const fmt = n => nf.format(Math.round(n*100)/100);
@@ -55,6 +56,31 @@ const num = v => {
   const n = parseFloat(s); return isNaN(n)?0:n;
 };
 const inV = n => (n||n===0) && n!=='' ? String(n).replace('.',DEC) : '';
+
+/* =========================================================
+   Apparence : classique ou « Liquid Glass » (réglable)
+========================================================= */
+const DEFAULT_THEME = {mode:'classic', bg:'ocean', blur:22, transparency:50, shine:60};
+const GBG = (c1,c2,c3,base) => `radial-gradient(60% 42% at 12% 10%, ${c1} 0%, transparent 70%), radial-gradient(55% 42% at 92% 34%, ${c2} 0%, transparent 70%), radial-gradient(65% 50% at 28% 96%, ${c3} 0%, transparent 70%), ${base}`;
+const BGS = {
+  ocean:   {name:'Océan',             base:'#EAF4FF', c:['#7DD3FC','#5EEAD4','#A5B4FC']},
+  sunset:  {name:'Coucher de soleil', base:'#FFF3EA', c:['#FDBA74','#FDA4AF','#FCD34D']},
+  mint:    {name:'Menthe',            base:'#EDFFF5', c:['#86EFAC','#5EEAD4','#BEF264']},
+  aurora:  {name:'Aurore',            base:'#F5F0FF', c:['#C4B5FD','#F9A8D4','#7DD3FC']},
+  rose:    {name:'Rose',              base:'#FFF0F5', c:['#FDA4AF','#FBCFE8','#FDE68A']},
+  graphite:{name:'Graphite',          base:'#EEF1F5', c:['#CBD5E1','#94A3B8','#E2E8F0']},
+};
+function applyTheme(){
+  const th = Object.assign({}, DEFAULT_THEME, db && db.settings.theme);
+  const bg = BGS[th.bg] || BGS.ocean, r = document.documentElement.style;
+  document.body.classList.toggle('glass', th.mode==='glass');
+  r.setProperty('--g-blur', th.blur+'px');
+  r.setProperty('--g-a', (0.92 - th.transparency/100*0.74).toFixed(3));
+  r.setProperty('--g-shine', (0.25 + th.shine/100*0.7).toFixed(3));
+  r.setProperty('--g-bg', GBG(bg.c[0],bg.c[1],bg.c[2],bg.base));
+  r.setProperty('--g-base', bg.base);
+  const m = document.querySelector('meta[name=theme-color]'); if(m) m.content = th.mode==='glass' ? bg.base : '#FAFAFB';
+}
 
 /* =========================================================
    Données
@@ -110,7 +136,7 @@ function detectPrefs(){
 function freshDb(keepPrefs){
   const p = keepPrefs && db ? {lang:db.settings.lang,currency:db.settings.currency} : detectPrefs();
   return {v:1, cats:JSON.parse(JSON.stringify(DEFAULT_CATS)), tx:[], updatedAt:Date.now(),
-    settings:{startBalance:0, startDate:monthStart(TODAY), lang:p.lang, currency:p.currency, tutorialDone:false}};
+    settings:{startBalance:0, startDate:monthStart(TODAY), lang:p.lang, currency:p.currency, tutorialDone:false, theme:keepPrefs&&db?{...db.settings.theme}:{...DEFAULT_THEME}}};
 }
 function normalize(d){
   d.settings = d.settings || {};
@@ -119,6 +145,7 @@ function normalize(d){
   if(d.settings.tutorialDone===undefined) d.settings.tutorialDone = true; // données existantes : pas de tutoriel imposé
   if(d.settings.startBalance===undefined) d.settings.startBalance = 0;
   if(!d.settings.startDate) d.settings.startDate = monthStart(TODAY);
+  d.settings.theme = Object.assign({}, DEFAULT_THEME, d.settings.theme);
   d.updatedAt = d.updatedAt || 0;
   return d;
 }
@@ -474,6 +501,24 @@ function prefsSelects(){
     <label class="field"><span>${t('Monnaie')}</span><select data-pref="currency">${CURRENCIES.map(c=>{ let n=c; try{ n = c+' — '+new Intl.DisplayNames(LOCALE,{type:'currency'}).of(c); }catch(e){} return `<option value="${c}" ${c===db.settings.currency?'selected':''}>${esc(n)}</option>`; }).join('')}</select></label>
   </div>`;
 }
+function themePanel(){
+  const th = db.settings.theme, glass = th.mode==='glass';
+  const slider = (k,label,max) => `<label class="slider"><span>${label}<b id="v-${k}">${th[k]}</b></span><input type="range" min="0" max="${max}" value="${th[k]}" data-theme-range="${k}"></label>`;
+  return `<div class="panel">
+    <h2>${t('Apparence')}</h2>
+    <div class="type-seg neutral">
+      <button data-theme-mode="classic" class="${glass?'':'on'}">${t('Classique')}</button>
+      <button data-theme-mode="glass" class="${glass?'on':''}">${t('Liquid Glass')}</button>
+    </div>
+    ${glass?`
+    <span class="lbl2">${t('Fond')}</span>
+    <div class="bgs">${Object.entries(BGS).map(([k,b])=>`<button class="bgsw ${k===th.bg?'on':''}" data-bg="${k}" style="background:${GBG(b.c[0],b.c[1],b.c[2],b.base)}" aria-label="${t(b.name)}"><i>${t(b.name)}</i></button>`).join('')}</div>
+    ${slider('transparency',t('Transparence'),100)}
+    ${slider('blur',t('Flou'),40)}
+    ${slider('shine',t('Reflets'),100)}
+    <button class="btn ghost" data-act="theme-reset" style="margin-top:4px">${t("Réinitialiser l'apparence")}</button>`:''}
+  </div>`;
+}
 function renderSettings(){
   const catRow = c => `<button class="set-item" data-act="cat-edit" data-id="${c.id}">
     <span class="ico" style="background:${c.color}22;width:36px;height:36px;font-size:17px;border-radius:12px">${c.emoji}</span>
@@ -482,6 +527,7 @@ function renderSettings(){
   $('#app').innerHTML = `
     <h1 class="page">${t('Réglages')}</h1>
     ${accountPanel()}
+    ${themePanel()}
     <div class="panel">
       <h2>${t('Langue et monnaie')}</h2>
       ${prefsSelects()}
@@ -853,6 +899,11 @@ document.addEventListener('click',e=>{
   const sw = e.target.closest('[data-col]');
   if(sw && CF){ CF.color = sw.dataset.col; document.querySelectorAll('#c-sw .sw').forEach(x=>x.classList.toggle('on',x===sw)); return; }
 
+  const tm = e.target.closest('[data-theme-mode]');
+  if(tm){ db.settings.theme.mode = tm.dataset.themeMode; applyTheme(); save(); render(); return; }
+  const tb = e.target.closest('[data-bg]');
+  if(tb){ db.settings.theme.bg = tb.dataset.bg; applyTheme(); save(); render(); return; }
+
   const nav = e.target.closest('#nav button');
   if(nav){ ui.tab = nav.dataset.tab; render(); $('#app').scrollTop = 0; return; }
   if(e.target.closest('#fab')){ openForm({mode:'new', date:ui.cursor}); return; }
@@ -902,6 +953,7 @@ document.addEventListener('click',e=>{
     case 'import': $('#file-in').click(); break;
     case 'reset-demo': choose(t('Charger un exemple ?'),t("Tout ce que tu as saisi sera remplacé par quelques lignes d'exemple. Tu pourras ensuite tout modifier ou effacer."),[{v:'ok',label:t('Charger l\'exemple'),danger:true},{v:'no',label:t('Annuler')}],x=>{ if(x==='ok'){ const d = freshDb(true); d.settings.tutorialDone = true; d.tx = exampleTx(); d.cloudUid = db.cloudUid; replaceDb(d,false); save(); toast(t('Exemple chargé')); } }); break;
     case 'reset-empty': choose(t('Tout effacer ?'),t('Toutes tes lignes seront supprimées. Pense à exporter une sauvegarde avant.'),[{v:'ok',label:t('Tout effacer'),danger:true},{v:'no',label:t('Annuler')}],x=>{ if(x==='ok'){ const d = freshDb(true); d.settings.tutorialDone = true; d.cloudUid = db.cloudUid; replaceDb(d,false); save(); toast(t('Application vidée')); } }); break;
+    case 'theme-reset': { const m = db.settings.theme.mode; db.settings.theme = {...DEFAULT_THEME, mode:m}; applyTheme(); save(); render(); break; }
     case 'tuto-open': showTuto(0); break;
     case 'tuto-next': if(tutoStep>=tutoSteps().length-1) endTuto(); else showTuto(tutoStep+1); break;
     case 'tuto-prev': showTuto(tutoStep-1); break;
@@ -931,6 +983,13 @@ document.addEventListener('change',e=>{
   if($('#tuto').classList.contains('open')) showTuto(tutoStep);
   render();
 });
+// curseurs d'apparence : aperçu en direct, enregistrement au relâchement
+document.addEventListener('input',e=>{
+  const r = e.target.closest('[data-theme-range]'); if(!r) return;
+  const k = r.dataset.themeRange; db.settings.theme[k] = +r.value; applyTheme();
+  const v = $('#v-'+k); if(v) v.textContent = r.value;
+});
+document.addEventListener('change',e=>{ if(e.target.closest('[data-theme-range]')) save(); });
 document.addEventListener('keydown',e=>{
   if(e.key==='Enter' && e.target.closest('#a-mail,#a-pass')){ e.preventDefault(); const b = $('#a-go'); if(b) b.click(); }
 });

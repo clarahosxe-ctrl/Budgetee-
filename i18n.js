@@ -89,6 +89,12 @@ const DICT = {
     'Charger un exemple':'Load an example',
     'Tout effacer et repartir de zéro':'Erase everything and start over',
 
+    // apparence
+    'Apparence':'Appearance','Classique':'Classic','Liquid Glass':'Liquid Glass','Fond':'Background',
+    'Transparence':'Transparency','Flou':'Blur','Reflets':'Highlights',
+    "Réinitialiser l'apparence":'Reset appearance',
+    'Océan':'Ocean','Coucher de soleil':'Sunset','Menthe':'Mint','Aurore':'Aurora','Rose':'Rose','Graphite':'Graphite',
+
     // formulaire
     "Ex. Salaire, prime…":'e.g. Salary, bonus…',
     "Ex. Courses, loyer…":'e.g. Groceries, rent…',
