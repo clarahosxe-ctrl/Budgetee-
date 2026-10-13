@@ -38,7 +38,7 @@ function applyPrefs(){
   document.documentElement.lang = LANG;
   document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.dataset.i18n); });
   const fab = $('#fab'); if(fab) fab.setAttribute('aria-label', t('Ajouter'));
-  document.title = t('Budget');
+  document.title = 'Daylance';
   applyTheme();
 }
 const curSymbol = () => { try{ return nf.formatToParts(0).find(p=>p.type==='currency').value; }catch(e){ return CUR; } };
@@ -492,8 +492,9 @@ function renderStats(){
 /* =========================================================
    Nouveautés (bandeau en haut de l'accueil)
 ========================================================= */
-const NEWS_VERSION = '2026-10-13';
+const NEWS_VERSION = '2026-10-14';
 const NEWS = [
+  {txt:"L'application s'appelle désormais Daylance."},
   {txt:'Nouveau logo de l\'application.'},
   {txt:'Liquid Glass aussi en mode sombre, avec ou sans « auras » lumineuses (Réglages → Apparence).'},
   {txt:'Mode sombre pour le thème classique : clair, sombre ou automatique.'},
@@ -1073,7 +1074,7 @@ function exportData(){
   const copy = JSON.parse(JSON.stringify(db)); delete copy.cloudUid;
   const blob = new Blob([JSON.stringify(copy,null,2)],{type:'application/json'});
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob); a.download = `budget-sauvegarde-${TODAY}.json`;
+  a.href = URL.createObjectURL(blob); a.download = `daylance-sauvegarde-${TODAY}.json`;
   document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),2000);
 }
 function importFile(f){
@@ -1097,7 +1098,7 @@ let tutoStep = 0;
 function tutoSteps(){
   const cloud = typeof Cloud!=='undefined' && Cloud.enabled;
   return [
-    {logo:true, h:t('Bienvenue !'), p:t("Cette appli te montre, jour après jour, l'argent qui rentre et qui sort de ton compte. Choisis d'abord ta langue et ta monnaie."), prefs:true},
+    {logo:true, h:t('Bienvenue sur Daylance !'), p:t("Cette appli te montre, jour après jour, l'argent qui rentre et qui sort de ton compte. Choisis d'abord ta langue et ta monnaie."), prefs:true},
     {e:'🏠', h:t('Ton accueil'), p:t("La page Accueil résume ta journée : ton solde, ce qu'il te reste à vivre, tes prochains mouvements (tu règles le nombre de jours) et des alertes. Tu choisis les cartes et leur ordre avec « Personnaliser l'accueil ».")},
     {e:'🎯', h:t('Crédits et objectifs'), p:t("Suis tes crédits (mensualités restantes, date de fin) et crée des objectifs d'épargne avec une barre de progression. Touche + sur un objectif pour y ajouter une somme.")},
     {e:'📅', h:t('Ton calendrier'), p:t("Chaque jour affiche tes entrées (en vert) et tes dépenses. Touche un jour pour voir le détail. Glisse vers la gauche ou la droite pour changer de mois.")},
@@ -1117,7 +1118,7 @@ function showTuto(step){
   el.innerHTML = `
     <div class="tuto-top"><span class="tuto-count">${tutoStep+1} / ${S.length}</span><button class="linkbtn" data-act="tuto-skip">${t('Passer')}</button></div>
     <div class="tuto-body">
-      ${s.logo?`<img class="tuto-logo" src="icons/icon-192.png" alt="Budget">`:`<div class="tuto-emoji">${s.e}</div>`}
+      ${s.logo?`<img class="tuto-logo" src="icons/icon-192.png" alt="Daylance">`:`<div class="tuto-emoji">${s.e}</div>`}
       <h2>${s.h}</h2>
       <p>${s.p}</p>
       ${s.prefs?`<div class="tuto-prefs">${prefsSelects()}</div>`:''}

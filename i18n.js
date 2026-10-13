@@ -3,7 +3,6 @@
 let LANG = 'fr';
 const DICT = {
   en: {
-    'Budget':'Budget',
     'Ajouter':'Add',
     'Calendrier':'Calendar',
     'Répartition':'Breakdown',
@@ -145,6 +144,7 @@ const DICT = {
     "La page Accueil résume ta journée : solde, reste à vivre, prochains mouvements, alertes, crédits et objectifs d'épargne. Tu choisis les cartes et leur ordre avec « Personnaliser l'accueil ».":'The Home page sums up your day: balance, money left to spend, upcoming entries, alerts, loans and savings goals. You choose the cards and their order with “Customize home”.',
 
     // nouveautés, compte, tutoriel (v. 2026-10-13)
+    "L'application s'appelle désormais Daylance.":'The app is now called Daylance.',
     'Nouveautés':'What\'s new','Fermer':'Close','Tout voir':'See all','Compris':'Got it',
     "Les dernières évolutions de l'application.":'The latest changes to the app.',
     "Nouveau logo de l'application.":'New app logo.',
@@ -242,7 +242,7 @@ const DICT = {
     'Application vidée':'App cleared',
 
     // tutoriel
-    'Bienvenue !':'Welcome!',
+    'Bienvenue sur Daylance !':'Welcome to Daylance!',
     "Cette appli te montre, jour après jour, l'argent qui rentre et qui sort de ton compte. Choisis d'abord ta langue et ta monnaie.":'This app shows you, day after day, the money coming in and going out of your account. First, choose your language and currency.',
     'Ton calendrier':'Your calendar',
     'Chaque jour affiche tes entrées (en vert) et tes dépenses. Touche un jour pour voir le détail. Glisse vers la gauche ou la droite pour changer de mois.':'Each day shows your income (in green) and your expenses. Tap a day to see the details. Swipe left or right to change month.',
