@@ -1,13 +1,11 @@
-/* Configuration des comptes en ligne (Firebase).
-   Tant que ce fichier est vide (null), l'appli fonctionne sans comptes, avec les données sur l'appareil.
-   Pour activer les comptes : suivre « Activer les comptes » dans le README, puis coller ici
-   la configuration de ton projet Firebase (ces valeurs ne sont pas secrètes). */
-window.FIREBASE_CONFIG = null;
-/* Exemple :
+/* Configuration des comptes en ligne (Firebase, projet « budgetee-b5c71 »).
+   Ces valeurs ne sont pas secrètes : la sécurité repose sur les règles Firestore (firestore.rules).
+   Mettre `window.FIREBASE_CONFIG = null;` pour désactiver les comptes. */
 window.FIREBASE_CONFIG = {
-  apiKey: "AIza...",
-  authDomain: "mon-projet.firebaseapp.com",
-  projectId: "mon-projet",
-  appId: "1:1234567890:web:abcdef"
+  apiKey: "AIzaSyAHYz-z6tjQSRr4MgkGGPo8QUf6Mq8GuOA",
+  authDomain: "budgetee-b5c71.firebaseapp.com",
+  projectId: "budgetee-b5c71",
+  storageBucket: "budgetee-b5c71.firebasestorage.app",
+  messagingSenderId: "705055595040",
+  appId: "1:705055595040:web:655c3f0dfaaf1ca3107a45"
 };
-*/

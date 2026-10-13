@@ -29,6 +29,10 @@ const Cloud = (function(){
       'auth/network-request-failed':'Pas de connexion internet.',
       'auth/requires-recent-login':'Pour des raisons de sécurité, reconnecte-toi puis réessaie.',
       'unavailable':'Pas de connexion internet.',
+      'auth/operation-not-allowed':"La connexion par e-mail n'est pas activée dans Firebase (Authentication → Sign-in method).",
+      'auth/unauthorized-domain':"Ce site n'est pas autorisé dans Firebase (Authentication → Paramètres → Domaines autorisés).",
+      'permission-denied':'Accès refusé : vérifie que les règles Firestore sont publiées.',
+      'failed-precondition':"La base de données Firestore n'est pas encore créée dans Firebase.",
       'no-service':"Le service de comptes n'est pas disponible pour le moment.",
     };
     return t(M[code] || "Une erreur est survenue. Réessaie.");
