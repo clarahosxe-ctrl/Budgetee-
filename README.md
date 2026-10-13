@@ -1,7 +1,7 @@
 # Budget
 
 Web app de budget perso (calendrier, récurrences, détail des lignes, répartition, projection du solde), pensée pour le téléphone.
-Français / English, monnaie au choix, page d'accueil personnalisable (solde, reste à vivre, prochains mouvements, alertes, suivi des crédits, objectifs d'épargne, mini-graphiques), mode clair / sombre / automatique (thème classique), thème « Liquid Glass » réglable (fond, transparence, flou, reflets), tutoriel de démarrage, fonctionne hors ligne, mise à jour automatique.
+Français / English, monnaie au choix, page d'accueil personnalisable (solde, reste à vivre, prochains mouvements, alertes, suivi des crédits, objectifs d'épargne, mini-graphiques), mode clair / sombre / automatique, thème « Liquid Glass » clair ou sombre, avec ou sans auras (fond, transparence, flou, reflets), bandeau de nouveautés, tutoriel de démarrage, fonctionne hors ligne, mise à jour automatique.
 
 ## Mise en ligne (GitHub Pages)
 
@@ -39,3 +39,11 @@ Ajouter un bloc dans `DICT` (`i18n.js`) puis l'ajouter à `LANGS` (`app.js`).
 ## Fichiers
 
 `index.html` (page + styles) · `app.js` (application) · `i18n.js` (traductions) · `cloud.js` (comptes / synchro) · `firebase-config.js` · `firestore.rules` · `sw.js` (hors-ligne + mises à jour) · `manifest.webmanifest`
+
+## Bandeau « Nouveautés »
+
+À chaque mise à jour importante, modifier `NEWS_VERSION` et la liste `NEWS` dans `app.js` : le bandeau réapparaît une fois pour chaque utilisateur, avec une croix pour le fermer. Les nouveaux utilisateurs ne le voient pas.
+
+## Logo
+
+Source : `icons/logo-source.jpg`. Les icônes (`icons/`, `icon-180.png`) en sont dérivées. Sur un téléphone où l'appli est déjà installée, l'ancienne icône peut rester : la supprimer puis la réajouter à l'écran d'accueil.

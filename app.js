@@ -60,30 +60,36 @@ const inV = n => (n||n===0) && n!=='' ? String(n).replace('.',DEC) : '';
 /* =========================================================
    Apparence : classique ou « Liquid Glass » (réglable)
 ========================================================= */
-const DEFAULT_THEME = {mode:'classic', scheme:'light', bg:'ocean', blur:22, transparency:50, shine:60};
+const DEFAULT_THEME = {mode:'classic', scheme:'light', aura:true, bg:'ocean', blur:22, transparency:50, shine:60};
 const darkMQ = window.matchMedia ? matchMedia('(prefers-color-scheme: dark)') : null;
+const hexA = (h,a) => { const n = parseInt(h.slice(1),16); return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`; };
 const GBG = (c1,c2,c3,base) => `radial-gradient(60% 42% at 12% 10%, ${c1} 0%, transparent 70%), radial-gradient(55% 42% at 92% 34%, ${c2} 0%, transparent 70%), radial-gradient(65% 50% at 28% 96%, ${c3} 0%, transparent 70%), ${base}`;
 const BGS = {
-  ocean:   {name:'Océan',             base:'#EAF4FF', c:['#7DD3FC','#5EEAD4','#A5B4FC']},
-  sunset:  {name:'Coucher de soleil', base:'#FFF3EA', c:['#FDBA74','#FDA4AF','#FCD34D']},
-  mint:    {name:'Menthe',            base:'#EDFFF5', c:['#86EFAC','#5EEAD4','#BEF264']},
-  aurora:  {name:'Aurore',            base:'#F5F0FF', c:['#C4B5FD','#F9A8D4','#7DD3FC']},
-  rose:    {name:'Rose',              base:'#FFF0F5', c:['#FDA4AF','#FBCFE8','#FDE68A']},
-  graphite:{name:'Graphite',          base:'#EEF1F5', c:['#CBD5E1','#94A3B8','#E2E8F0']},
+  ocean:   {name:'Océan',             base:'#EAF4FF', c:['#7DD3FC','#5EEAD4','#A5B4FC'], dbase:'#08101F', dc:['#0EA5E9','#14B8A6','#6366F1']},
+  sunset:  {name:'Coucher de soleil', base:'#FFF3EA', c:['#FDBA74','#FDA4AF','#FCD34D'], dbase:'#1A0E0C', dc:['#F97316','#E11D48','#F59E0B']},
+  mint:    {name:'Menthe',            base:'#EDFFF5', c:['#86EFAC','#5EEAD4','#BEF264'], dbase:'#07150F', dc:['#10B981','#14B8A6','#84CC16']},
+  aurora:  {name:'Aurore',            base:'#F5F0FF', c:['#C4B5FD','#F9A8D4','#7DD3FC'], dbase:'#0E0A1E', dc:['#8B5CF6','#EC4899','#38BDF8']},
+  rose:    {name:'Rose',              base:'#FFF0F5', c:['#FDA4AF','#FBCFE8','#FDE68A'], dbase:'#1A0A12', dc:['#F43F5E','#EC4899','#F59E0B']},
+  graphite:{name:'Graphite',          base:'#EEF1F5', c:['#CBD5E1','#94A3B8','#E2E8F0'], dbase:'#0B0C10', dc:['#64748B','#475569','#94A3B8']},
 };
+// fond du thème Liquid Glass : halos colorés (« auras ») ou fond uni teinté
+function glassBg(bg,dark,aura){
+  if(!aura) return dark ? bg.dbase : bg.base;
+  return dark ? GBG(hexA(bg.dc[0],.6),hexA(bg.dc[1],.5),hexA(bg.dc[2],.55),bg.dbase) : GBG(bg.c[0],bg.c[1],bg.c[2],bg.base);
+}
 if(darkMQ) (darkMQ.addEventListener ? darkMQ.addEventListener('change',()=>applyTheme()) : darkMQ.addListener(()=>applyTheme()));
 function applyTheme(){
   const th = Object.assign({}, DEFAULT_THEME, db && db.settings.theme);
-  const bg = BGS[th.bg] || BGS.ocean, r = document.documentElement.style;
-  const dark = th.mode==='classic' && (th.scheme==='dark' || (th.scheme==='auto' && darkMQ && darkMQ.matches));
-  document.body.classList.toggle('glass', th.mode==='glass');
-  document.body.classList.toggle('dark', dark);
+  const bg = BGS[th.bg] || BGS.ocean, r = document.documentElement.style, glass = th.mode==='glass';
+  const dark = th.scheme==='dark' || (th.scheme==='auto' && darkMQ && darkMQ.matches);
+  document.body.classList.toggle('glass', glass);
+  document.body.classList.toggle('dark', !!dark);
   r.setProperty('--g-blur', th.blur+'px');
-  r.setProperty('--g-a', (0.92 - th.transparency/100*0.74).toFixed(3));
+  r.setProperty('--g-a', (dark ? 0.26 - th.transparency/100*0.2 : 0.92 - th.transparency/100*0.74).toFixed(3));
   r.setProperty('--g-shine', (0.25 + th.shine/100*0.7).toFixed(3));
-  r.setProperty('--g-bg', GBG(bg.c[0],bg.c[1],bg.c[2],bg.base));
-  r.setProperty('--g-base', bg.base);
-  const m = document.querySelector('meta[name=theme-color]'); if(m) m.content = th.mode==='glass' ? bg.base : dark ? '#14141B' : '#FAFAFB';
+  r.setProperty('--g-bg', glassBg(bg,dark,th.aura!==false));
+  r.setProperty('--g-base', dark ? bg.dbase : bg.base);
+  const m = document.querySelector('meta[name=theme-color]'); if(m) m.content = glass ? (dark?bg.dbase:bg.base) : dark ? '#14141B' : '#FAFAFB';
 }
 
 /* =========================================================
@@ -140,7 +146,7 @@ function detectPrefs(){
 function freshDb(keepPrefs){
   const p = keepPrefs && db ? {lang:db.settings.lang,currency:db.settings.currency} : detectPrefs();
   return {v:1, cats:JSON.parse(JSON.stringify(DEFAULT_CATS)), tx:[], goals:[], updatedAt:Date.now(),
-    settings:{startBalance:0, startDate:monthStart(TODAY), lang:p.lang, currency:p.currency, tutorialDone:false, theme:keepPrefs&&db?{...db.settings.theme}:{...DEFAULT_THEME}, home:keepPrefs&&db?JSON.parse(JSON.stringify(db.settings.home)):mergeHome(), name:keepPrefs&&db?db.settings.name:'', upcomingDays:keepPrefs&&db?db.settings.upcomingDays:2}};
+    settings:{startBalance:0, startDate:monthStart(TODAY), lang:p.lang, currency:p.currency, tutorialDone:false, theme:keepPrefs&&db?{...db.settings.theme}:{...DEFAULT_THEME}, home:keepPrefs&&db?JSON.parse(JSON.stringify(db.settings.home)):mergeHome(), name:keepPrefs&&db?db.settings.name:'', upcomingDays:keepPrefs&&db?db.settings.upcomingDays:2, newsSeen:NEWS_VERSION}};
 }
 function normalize(d){
   d.settings = d.settings || {};
@@ -482,6 +488,34 @@ function renderStats(){
 }
 
 
+
+/* =========================================================
+   Nouveautés (bandeau en haut de l'accueil)
+========================================================= */
+const NEWS_VERSION = '2026-10-13';
+const NEWS = [
+  {txt:'Nouveau logo de l\'application.'},
+  {txt:'Liquid Glass aussi en mode sombre, avec ou sans « auras » lumineuses (Réglages → Apparence).'},
+  {txt:'Mode sombre pour le thème classique : clair, sombre ou automatique.'},
+  {txt:'Nouvelle page Accueil personnalisable : reste à vivre, alertes, crédits, objectifs d\'épargne.'},
+  {txt:'Section « Mon compte » : retrouve tes données sur tous tes appareils avec ton e-mail.'},
+  {txt:'Tutoriel de démarrage mis à jour avec toutes les fonctionnalités.'},
+];
+function newsHtml(){
+  if(db.settings.newsSeen===NEWS_VERSION) return '';
+  return `<div class="news" role="status">
+    <div class="news-top"><b>✨ ${t('Nouveautés')}</b><button class="news-x" data-act="news-close" aria-label="${t('Fermer')}">✕</button></div>
+    <ul>${NEWS.slice(0,4).map(n=>`<li>${t(n.txt)}</li>`).join('')}</ul>
+    <button class="linkbtn" data-act="news-open">${t('Tout voir')}</button>
+  </div>`;
+}
+function openNews(){
+  openSheet(1,`<div class="sheet-head"><h3>✨ ${t('Nouveautés')}</h3><button class="x" data-close="1">✕</button></div>
+    <div class="note" style="margin-top:-6px">${t("Les dernières évolutions de l'application.")}</div>
+    <ul class="news-list">${NEWS.map(n=>`<li>${t(n.txt)}</li>`).join('')}</ul>
+    <button class="btn violet" data-close="1">${t('Compris')}</button>`);
+}
+
 /* =========================================================
    Accueil (cartes personnalisables)
 ========================================================= */
@@ -651,7 +685,7 @@ function wCharts(){
 }
 const WIDGET_FN = {hello:wHello, runway:wRunway, upcoming:wUpcoming, alerts:wAlerts, credits:wCredits, goals:wGoals, charts:wCharts};
 function renderHome(){
-  let h = db.settings.home.filter(x=>x.on).map(x=>WIDGET_FN[x.id]()).join('');
+  let h = newsHtml() + db.settings.home.filter(x=>x.on).map(x=>WIDGET_FN[x.id]()).join('');
   if(!h) h = `<h1 class="page">${t('Accueil')}</h1><div class="empty">${t("Toutes les cartes sont masquées. Touche « Personnaliser l'accueil » pour les réafficher.")}</div>`;
   $('#app').innerHTML = h + `<button class="add-inline" data-act="home-cfg">⚙ ${t("Personnaliser l'accueil")}</button>`;
 }
@@ -701,11 +735,12 @@ function openGoalAdd(id){
    Rendu : réglages
 ========================================================= */
 function accountPanel(){
-  if(typeof Cloud==='undefined' || !Cloud.enabled) return '';
-  const u = Cloud.user;
+  const on = typeof Cloud!=='undefined' && Cloud.enabled;
+  const u = on ? Cloud.user : null;
   if(!u) return `<div class="panel">
       <h2>${t('Mon compte')}</h2>
       <div class="note">${t("Crée un compte avec ton e-mail pour retrouver tes données sur n'importe quel appareil, même si tu perds ou changes de téléphone.")}</div>
+      ${on?'':`<div class="note soon">${t("Bientôt disponible : les comptes ne sont pas encore activés sur cette version. En attendant, tes données restent sur cet appareil.")}</div>`}
       <button class="btn violet" data-act="auth-open" data-mode="signup">${t('Créer un compte')}</button>
       <button class="btn ghost" data-act="auth-open" data-mode="signin" style="margin-top:8px">${t('Se connecter')}</button>
     </div>`;
@@ -727,6 +762,7 @@ function prefsSelects(){
 }
 function themePanel(){
   const th = db.settings.theme, glass = th.mode==='glass';
+  const dark = document.body.classList.contains('dark');
   const slider = (k,label,max) => `<label class="slider"><span>${label}<b id="v-${k}">${th[k]}</b></span><input type="range" min="0" max="${max}" value="${th[k]}" data-theme-range="${k}"></label>`;
   return `<div class="panel">
     <h2>${t('Apparence')}</h2>
@@ -734,14 +770,18 @@ function themePanel(){
       <button data-theme-mode="classic" class="${glass?'':'on'}">${t('Classique')}</button>
       <button data-theme-mode="glass" class="${glass?'on':''}">${t('Liquid Glass')}</button>
     </div>
-    ${glass?'':`<span class="lbl2">${t('Mode')}</span>
+    <span class="lbl2">${t('Mode')}</span>
     <div class="type-seg neutral" style="margin-bottom:8px">
       ${[['light','Clair'],['dark','Sombre'],['auto','Automatique']].map(([k,l])=>`<button data-theme-scheme="${k}" class="${th.scheme===k?'on':''}">${t(l)}</button>`).join('')}
     </div>
-    <div class="note" style="margin-bottom:0">${t('Automatique suit le réglage de ton téléphone.')}</div>`}
+    <div class="note" style="margin-bottom:${glass?14:0}px">${t('Automatique suit le réglage de ton téléphone.')}</div>
     ${glass?`
     <span class="lbl2">${t('Fond')}</span>
-    <div class="bgs">${Object.entries(BGS).map(([k,b])=>`<button class="bgsw ${k===th.bg?'on':''}" data-bg="${k}" style="background:${GBG(b.c[0],b.c[1],b.c[2],b.base)}" aria-label="${t(b.name)}"><i>${t(b.name)}</i></button>`).join('')}</div>
+    <div class="bgs">${Object.entries(BGS).map(([k,b])=>`<button class="bgsw ${k===th.bg?'on':''}" data-bg="${k}" style="background:${glassBg(b,dark,th.aura!==false)}" aria-label="${t(b.name)}"><i>${t(b.name)}</i></button>`).join('')}</div>
+    <div class="cfg-row" style="border-top:1px solid var(--line);margin-top:-2px">
+      <button class="tg ${th.aura!==false?'on':''}" data-theme-aura="1" aria-label="${t('Auras lumineuses')}"></button>
+      <span class="meta"><b>${t('Auras lumineuses')}</b><small style="display:block;color:var(--ink-2);font-size:12px">${t('Halos de couleur derrière le verre. Désactivés : fond uni.')}</small></span>
+    </div>
     ${slider('transparency',t('Transparence'),100)}
     ${slider('blur',t('Flou'),40)}
     ${slider('shine',t('Reflets'),100)}
@@ -786,7 +826,8 @@ function renderSettings(){
     </div>
     <div class="panel">
       <h2>${t('Aide')}</h2>
-      <button class="btn ghost" data-act="tuto-open">🎓 ${t('Revoir le tutoriel')}</button>
+      <button class="btn ghost" data-act="news-open">✨ ${t('Nouveautés')}</button>
+      <button class="btn ghost" data-act="tuto-open" style="margin-top:8px">🎓 ${t('Revoir le tutoriel')}</button>
     </div>
     <div class="panel">
       <h2>${t('Zone sensible')}</h2>
@@ -1056,15 +1097,17 @@ let tutoStep = 0;
 function tutoSteps(){
   const cloud = typeof Cloud!=='undefined' && Cloud.enabled;
   return [
-    {e:'👋', h:t('Bienvenue !'), p:t("Cette appli te montre, jour après jour, l'argent qui rentre et qui sort de ton compte. Choisis d'abord ta langue et ta monnaie."), prefs:true},
-    {e:'🏠', h:t('Ton accueil'), p:t("La page Accueil résume ta journée : solde, reste à vivre, prochains mouvements, alertes, crédits et objectifs d'épargne. Tu choisis les cartes et leur ordre avec « Personnaliser l'accueil ».")},
+    {logo:true, h:t('Bienvenue !'), p:t("Cette appli te montre, jour après jour, l'argent qui rentre et qui sort de ton compte. Choisis d'abord ta langue et ta monnaie."), prefs:true},
+    {e:'🏠', h:t('Ton accueil'), p:t("La page Accueil résume ta journée : ton solde, ce qu'il te reste à vivre, tes prochains mouvements (tu règles le nombre de jours) et des alertes. Tu choisis les cartes et leur ordre avec « Personnaliser l'accueil ».")},
+    {e:'🎯', h:t('Crédits et objectifs'), p:t("Suis tes crédits (mensualités restantes, date de fin) et crée des objectifs d'épargne avec une barre de progression. Touche + sur un objectif pour y ajouter une somme.")},
     {e:'📅', h:t('Ton calendrier'), p:t("Chaque jour affiche tes entrées (en vert) et tes dépenses. Touche un jour pour voir le détail. Glisse vers la gauche ou la droite pour changer de mois.")},
     {e:'💰', h:t('Ton solde'), p:t("En haut, ton solde au jour choisi : il se recalcule tout seul. Aujourd'hui, touche « ✎ Corriger » pour y mettre le vrai solde de ton compte (même négatif).")},
     {e:'➕', h:t('Ajouter une ligne'), p:t("Touche le bouton + : montant, libellé, catégorie, date. Choisis une répétition (tous les mois, toutes les semaines…) pour un loyer, un salaire ou un abonnement.")},
     {e:'✏️', h:t('Modifier ou supprimer'), p:t("Touche une ligne pour la modifier, la dupliquer ou la supprimer. Pour une ligne qui se répète, tu choisis : cette fois seulement, celle-ci et les suivantes, ou toutes.")},
     {e:'🧾', h:t("Détailler une ligne"), p:t("Dans une ligne, ajoute des « postes » (téléphone, assurance…) : le total se calcule. Affiche-les groupés ou un par un dans le calendrier.")},
     {e:'📊', h:t('Répartition'), p:t("L'onglet Répartition montre où part ton argent par catégorie, le détail de tes lignes et l'évolution de ton solde sur 12 mois.")},
-    {e:'🔒', h:t('Tes données'), p: cloud ? t("Tes données restent sur ton téléphone. Crée un compte dans Réglages pour les retrouver sur n'importe quel appareil, même si tu perds ton téléphone.") : t("Tes données restent sur ton téléphone. Pense à exporter une sauvegarde de temps en temps dans Réglages.")},
+    {e:'🎨', h:t('Apparence'), p:t("Dans Réglages → Apparence : mode clair, sombre ou automatique, ou thème Liquid Glass en verre translucide (avec ou sans auras lumineuses). Tu règles la transparence, le flou et les reflets.")},
+    {e:'🔒', h:t('Tes données'), p: cloud ? t("Tes données restent sur ton téléphone. Crée un compte avec ton e-mail pour les retrouver sur n'importe quel appareil, même si tu perds ton téléphone.") : t("Tes données restent sur ton téléphone. Pense à exporter une sauvegarde de temps en temps dans Réglages. Les comptes en ligne arrivent bientôt."), cta: cloud},
   ];
 }
 function showTuto(step){
@@ -1074,7 +1117,7 @@ function showTuto(step){
   el.innerHTML = `
     <div class="tuto-top"><span class="tuto-count">${tutoStep+1} / ${S.length}</span><button class="linkbtn" data-act="tuto-skip">${t('Passer')}</button></div>
     <div class="tuto-body">
-      <div class="tuto-emoji">${s.e}</div>
+      ${s.logo?`<img class="tuto-logo" src="icons/icon-192.png" alt="Budget">`:`<div class="tuto-emoji">${s.e}</div>`}
       <h2>${s.h}</h2>
       <p>${s.p}</p>
       ${s.prefs?`<div class="tuto-prefs">${prefsSelects()}</div>`:''}
@@ -1082,6 +1125,7 @@ function showTuto(step){
     <div class="tuto-dots">${S.map((_,i)=>`<i class="${i===tutoStep?'on':''}"></i>`).join('')}</div>
     <div class="tuto-nav">
       ${tutoStep>0?`<button class="btn ghost" data-act="tuto-prev">${t('Retour')}</button>`:''}
+      ${last&&s.cta?`<button class="btn ghost" data-act="tuto-account">${t('Créer un compte')}</button>`:''}
       <button class="btn violet" data-act="tuto-next">${last?t("C'est parti !"):t('Suivant')}</button>
     </div>`;
 }
@@ -1095,14 +1139,15 @@ function endTuto(){
    Compte (interface) — la logique réseau est dans cloud.js
 ========================================================= */
 function openAuth(mode){
-  const up = mode==='signup';
+  const up = mode==='signup', off = !(typeof Cloud!=='undefined' && Cloud.enabled);
   openSheet(1,`
     <div class="sheet-head"><h3>${up?t('Créer un compte'):t('Se connecter')}</h3><button class="x" data-close="1">✕</button></div>
     <div class="note" style="margin-top:-6px">${up?t("Ton e-mail sert à retrouver tes données et à réinitialiser ton mot de passe. Tes données actuelles seront sauvegardées dans ce compte."):t('Connecte-toi pour retrouver tes données.')}</div>
-    <label class="field"><span>${t('E-mail')}</span><input id="a-mail" type="email" inputmode="email" autocomplete="email" autocapitalize="off" placeholder="nom@exemple.com"></label>
-    <label class="field"><span>${t('Mot de passe')}</span><input id="a-pass" type="password" autocomplete="${up?'new-password':'current-password'}" placeholder="${up?t('6 caractères minimum'):''}"></label>
+    ${off?`<div class="form-err" style="background:var(--yellow-soft);color:var(--ink)">${t("Les comptes ne sont pas encore activés sur cette version de l'appli. Tes données restent sur cet appareil : pense à exporter une sauvegarde dans Réglages.")}</div>`:''}
+    <label class="field"><span>${t('E-mail')}</span><input id="a-mail" type="email" inputmode="email" autocomplete="email" autocapitalize="off" placeholder="nom@exemple.com" ${off?'disabled':''}></label>
+    <label class="field"><span>${t('Mot de passe')}</span><input id="a-pass" type="password" autocomplete="${up?'new-password':'current-password'}" placeholder="${up?t('6 caractères minimum'):''}" ${off?'disabled':''}></label>
     <div id="a-err" class="form-err hidden"></div>
-    <button class="btn violet" id="a-go" data-act="auth-go" data-mode="${mode}">${up?t('Créer mon compte'):t('Se connecter')}</button>
+    <button class="btn violet" id="a-go" data-act="auth-go" data-mode="${mode}" ${off?'disabled':''}>${up?t('Créer mon compte'):t('Se connecter')}</button>
     ${up?'':`<button class="linkbtn" style="margin:12px auto 0;display:block" data-act="auth-reset">${t('Mot de passe oublié ?')}</button>`}
     <button class="linkbtn" style="margin:12px auto 0;display:block" data-act="auth-open" data-mode="${up?'signin':'signup'}">${up?t('J\'ai déjà un compte'):t('Pas encore de compte ? Créer un compte')}</button>
   `);
@@ -1137,6 +1182,8 @@ document.addEventListener('click',e=>{
 
   const tm = e.target.closest('[data-theme-mode]');
   if(tm){ db.settings.theme.mode = tm.dataset.themeMode; applyTheme(); save(); render(); return; }
+  const ta = e.target.closest('[data-theme-aura]');
+  if(ta){ db.settings.theme.aura = db.settings.theme.aura===false; applyTheme(); save(); render(); return; }
   const ts = e.target.closest('[data-theme-scheme]');
   if(ts){ db.settings.theme.scheme = ts.dataset.themeScheme; applyTheme(); save(); render(); return; }
   const tb = e.target.closest('[data-bg]');
@@ -1191,8 +1238,10 @@ document.addEventListener('click',e=>{
     case 'import': $('#file-in').click(); break;
     case 'reset-demo': choose(t('Charger un exemple ?'),t("Tout ce que tu as saisi sera remplacé par quelques lignes d'exemple. Tu pourras ensuite tout modifier ou effacer."),[{v:'ok',label:t('Charger l\'exemple'),danger:true},{v:'no',label:t('Annuler')}],x=>{ if(x==='ok'){ const d = freshDb(true); d.settings.tutorialDone = true; d.tx = exampleTx(); d.cloudUid = db.cloudUid; replaceDb(d,false); save(); toast(t('Exemple chargé')); } }); break;
     case 'reset-empty': choose(t('Tout effacer ?'),t('Toutes tes lignes seront supprimées. Pense à exporter une sauvegarde avant.'),[{v:'ok',label:t('Tout effacer'),danger:true},{v:'no',label:t('Annuler')}],x=>{ if(x==='ok'){ const d = freshDb(true); d.settings.tutorialDone = true; d.cloudUid = db.cloudUid; replaceDb(d,false); save(); toast(t('Application vidée')); } }); break;
-    case 'theme-reset': { const m = db.settings.theme.mode; db.settings.theme = {...DEFAULT_THEME, mode:m}; applyTheme(); save(); render(); break; }
+    case 'theme-reset': { const m = db.settings.theme.mode, sc = db.settings.theme.scheme; db.settings.theme = {...DEFAULT_THEME, mode:m, scheme:sc}; applyTheme(); save(); render(); break; }
     case 'up-days': db.settings.upcomingDays = Math.min(60,Math.max(1,(db.settings.upcomingDays||2)+(+el.dataset.d))); save(); render(); break;
+    case 'news-close': db.settings.newsSeen = NEWS_VERSION; save(); render(); break;
+    case 'news-open': openNews(); break;
     case 'quick': openForm({mode:'new', type:el.dataset.type, date:TODAY}); break;
     case 'goto-cal': ui.tab = 'cal'; ui.cursor = TODAY; render(); $('#app').scrollTop = 0; break;
     case 'home-cfg': openHomeCfg(); break;
@@ -1213,6 +1262,7 @@ document.addEventListener('click',e=>{
     case 'gadd-save': { const v = num($('#ga-val').value); if(!v){ toast(t('Entre un montant')); return; } const g = db.goals.find(x=>x.id===GF.id); g.saved = Math.round((g.saved+v)*100)/100; save(); closeSheet(1); render(); toast(t('Objectif mis à jour ✓')); break; }
     case 'tuto-open': showTuto(0); break;
     case 'tuto-next': if(tutoStep>=tutoSteps().length-1) endTuto(); else showTuto(tutoStep+1); break;
+    case 'tuto-account': endTuto(); ui.tab = 'set'; render(); openAuth('signup'); break;
     case 'tuto-prev': showTuto(tutoStep-1); break;
     case 'tuto-skip': endTuto(); break;
     case 'auth-open': openAuth(el.dataset.mode); break;

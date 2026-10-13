@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Budget">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="icon" href="icons/favicon-64.png" type="image/png">
 <link rel="apple-touch-icon" href="icon-180.png">
 <title>Budget</title>
 <style>
@@ -356,6 +356,53 @@ body.dark{
 .stepper button:disabled{opacity:.35;}
 .stepper b{min-width:58px;text-align:center;font-size:13px;color:var(--ink);}
 .glass .stepper{background:rgba(255,255,255,.5);} .glass .stepper button{background:rgba(255,255,255,.8);}
+
+/* nouveautés */
+.news{background:linear-gradient(135deg,var(--yellow-soft),var(--pink-soft));border-radius:20px;padding:12px 14px 10px;margin-bottom:14px;box-shadow:var(--shadow);}
+.news-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;font-size:14.5px;}
+.news-x{width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.65);color:var(--ink-2);font-size:13px;}
+.news ul,.news-list{margin:4px 0 6px;padding-left:18px;font-size:13px;line-height:1.5;color:var(--ink);}
+.news-list{font-size:14.5px;margin-bottom:16px;} .news-list li{margin-bottom:8px;}
+.news .linkbtn{padding:2px 0;}
+.note.soon{background:var(--yellow-soft);border-radius:12px;padding:10px 12px;color:var(--ink);margin-top:0;}
+.tuto-logo{width:104px;height:104px;border-radius:26px;margin:0 auto 18px;box-shadow:0 14px 30px -12px rgba(60,60,120,.45);}
+.dark .news-x{background:rgba(255,255,255,.14);}
+/* ===== Liquid Glass sombre ===== */
+.glass.dark{--ink-2:#B8B8CA;--ink-3:#8A8AA2;--line:rgba(255,255,255,.14);}
+.glass.dark .shell{box-shadow:0 0 60px rgba(0,0,0,.55);}
+.glass.dark .hero,.glass.dark .card,.glass.dark .panel,.glass.dark .item,.glass.dark .items-box,.glass.dark .empty,.glass.dark .round,.glass.dark .seg,.glass.dark .nav,.glass.dark .news{
+  background:linear-gradient(135deg,rgba(255,255,255,calc(var(--g-a) + .05)),rgba(255,255,255,var(--g-a)));
+  border:1px solid rgba(255,255,255,.2);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,calc(var(--g-shine) * .55)),inset 0 -1px 0 rgba(255,255,255,calc(var(--g-shine) * .12)),0 12px 32px -12px rgba(0,0,0,.65);
+}
+.glass .news{-webkit-backdrop-filter:blur(var(--g-blur)) saturate(170%);backdrop-filter:blur(var(--g-blur)) saturate(170%);border:1px solid rgba(255,255,255,.7);}
+.glass.dark .nav{background:linear-gradient(135deg,rgba(34,34,48,.78),rgba(22,22,32,.74));}
+.glass.dark .panel .item{background:rgba(255,255,255,.09);}
+.glass.dark .day{background:rgba(255,255,255,calc(var(--g-a) * .8));box-shadow:inset 0 1px 0 rgba(255,255,255,calc(var(--g-shine) * .4));}
+.glass.dark .day.blank{background:transparent;box-shadow:none;}
+.glass.dark .day.has-in{background:rgba(18,166,107,.3);}
+.glass.dark .day.sel{background:rgba(255,255,255,.24);}
+.glass.dark .pill,.glass.dark .mini-sum div{background:rgba(255,255,255,calc(var(--g-a) * .8));box-shadow:inset 0 1px 0 rgba(255,255,255,calc(var(--g-shine) * .4));border-color:rgba(255,255,255,.15);}
+.glass.dark .seg button.on,.glass.dark .type-seg.neutral button.on{background:rgba(255,255,255,.22);color:var(--ink);box-shadow:inset 0 1px 0 rgba(255,255,255,.3);}
+.glass.dark .type-seg{background:rgba(255,255,255,.08);}
+.glass.dark .btn.ghost,.glass.dark .add-inline,.glass.dark .wk-add,.glass.dark .sign-btn,.glass.dark .acct-ico,.glass.dark .choice,.glass.dark .x,.glass.dark .mv,.glass.dark .stepper button{background:rgba(255,255,255,.14);color:var(--ink);box-shadow:inset 0 1px 0 rgba(255,255,255,calc(var(--g-shine) * .4));}
+.glass.dark .stepper{background:rgba(255,255,255,.1);}
+.glass.dark .btn.violet,.glass.dark .fab{background:linear-gradient(180deg,#FFFFFF,#E2E2EC);color:#14141B;box-shadow:inset 0 1px 0 #fff,0 12px 26px -10px rgba(0,0,0,.7);}
+.glass.dark .sheet{background:linear-gradient(180deg,rgba(40,40,56,.86),rgba(24,24,34,.92));-webkit-backdrop-filter:blur(calc(var(--g-blur) + 8px)) saturate(160%);backdrop-filter:blur(calc(var(--g-blur) + 8px)) saturate(160%);box-shadow:inset 0 1px 0 rgba(255,255,255,.25);}
+.glass.dark .tuto{background:transparent;}
+.glass.dark .overlay{background:rgba(0,0,0,.5);}
+.glass.dark .field input,.glass.dark .field select,.glass.dark .inp{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.2);}
+.glass.dark .items-box .add-inline,.glass.dark .item-row .inp,.glass.dark .item-row .x{background:rgba(255,255,255,.12);}
+.glass.dark .nav button.on{background:rgba(255,255,255,.2);box-shadow:inset 0 1px 0 rgba(255,255,255,.3);}
+.glass.dark .tg{background:rgba(255,255,255,.28);} .glass.dark .tg.on{background:var(--green);}
+.glass.dark .qbtn.out{background:rgba(255,95,162,.22);} .glass.dark .qbtn.in{background:rgba(18,166,107,.28);}
+.glass.dark .bgsw{box-shadow:inset 0 0 0 1px rgba(255,255,255,.2);} .glass.dark .bgsw.on{border-color:#fff;}
+.glass.dark .news-x{background:rgba(255,255,255,.18);}
+.glass.dark .bar{background:rgba(255,255,255,.14);}
+.glass.dark .toast{background:#F2F2F7;color:#14141B;}
+.dark .qbtn.in,.dark .pill.in b{color:#4ADE80;}
+.dark .mini-sum div:nth-child(1){color:#4ADE80 !important;}
+.dark .pos,.dark .amt.in,.dark .net.pos{color:#4ADE80;}
 </style>
 </head>
 <body>
