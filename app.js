@@ -222,8 +222,7 @@ function expand(tx, from, to){
   const out = [];
   const items = tx.items && tx.items.length ? tx.items : null;
   const mk = (d,recurring) => {
-    const base = {key:tx.id+'@'+d, gkey:tx.id+'@'+d, id:tx.id, date:d, type:tx.type, label:tx.label, amount:tx.amount, cat:tx.cat, note:tx.note||'', recurring, rec:tx.rec, items};
-    if(items && tx.show==='detail') return items.map(it => ({...base, key:base.key+'#'+it.id, label:it.label||tx.label, amount:it.amount, group:tx.label}));
+    const base = {key:tx.id+'@'+d, gkey:tx.id+'@'+d, id:tx.id, date:d, type:tx.type, label:tx.label, amount:tx.amount, cat:tx.cat, note:tx.note||'', recurring, rec:tx.rec, items, show:tx.show};
     return [base];
   };
   if(!tx.rec){ if(tx.date>=from && tx.date<=to) out.push(...mk(tx.date,false)); return out; }
@@ -265,7 +264,7 @@ const sortOcc = list => list.slice().sort((a,b)=> (a.type===b.type? a.label.loca
 /* =========================================================
    État de l'interface
 ========================================================= */
-const ui = { tab:'home', view:'month', cursor: TODAY };
+const ui = { tab:'home', view:'month', cursor: TODAY, open:{} };
 try{ const v = localStorage.getItem(KEY+'-view'); if(v==='week'||v==='month') ui.view = v; }catch(e){}
 
 function toast(msg){
@@ -276,14 +275,22 @@ function toast(msg){
 /* =========================================================
    Rendu : éléments communs
 ========================================================= */
-function itemHtml(o){
+// une ligne = une seule carte. Les lignes détaillées (postes) se déplient dans la carte :
+// repliée par défaut, ou dépliée si « Déplié » est choisi dans la ligne (jamais sur l'accueil).
+const isOpen = (o,compact) => ui.open[o.id]!==undefined ? ui.open[o.id] : (o.show==='detail' && !compact);
+function itemHtml(o,compact){
   const c = catOf(o.cat,o.type);
   const inc = o.type==='income';
-  return `<button class="item" data-act="open" data-id="${o.id}" data-date="${o.date}">
-    <span class="ico" style="background:${c.color}22">${c.emoji}</span>
-    <span class="meta"><b>${esc(o.label)}</b><small>${esc(catName(c))}${o.group?` · ${esc(o.group)}`:''}${o.items&&!o.group?`<span class="rec-badge">${t('{n} postes',{n:o.items.length})}</span>`:''}${o.recurring?`<span class="rec-badge">↻ ${esc(recLabel(o.rec))}</span>`:''}</small></span>
-    <span class="amt num ${inc?'in':'out'}">${inc?'+':'−'}${fmt(o.amount)}</span>
-  </button>`;
+  const main = `<span class="ico" style="background:${c.color}22">${c.emoji}</span>
+    <span class="meta"><b>${esc(o.label)}</b><small>${esc(catName(c))}${o.recurring?`<span class="rec-badge">↻ ${esc(recLabel(o.rec))}</span>`:''}</small></span>
+    <span class="amt num ${inc?'in':'out'}">${inc?'+':'−'}${fmt(o.amount)}</span>`;
+  if(!o.items) return `<button class="item" data-act="open" data-id="${o.id}" data-date="${o.date}">${main}</button>`;
+  const open = isOpen(o,compact);
+  return `<div class="item grp">
+    <button class="grp-main" data-act="open" data-id="${o.id}" data-date="${o.date}">${main}</button>
+    <button class="grp-toggle" data-act="grp-toggle" data-id="${o.id}" data-open="${open?1:0}" aria-expanded="${open}"><i class="${open?'up':''}">▾</i> ${t('{n} postes',{n:o.items.length})}</button>
+    ${open?`<div class="grp-rows">${o.items.map(i=>`<div class="grp-row"><span>${esc(i.label||t('Sans nom'))}</span><b class="num">${inc?'+':'−'}${fmt(i.amount)}</b></div>`).join('')}</div>`:''}
+  </div>`;
 }
 
 function heroHtml(from,to,period){
@@ -387,7 +394,7 @@ function dayBlock(date,head){
   if(head) h += `<div class="sec-title"><h2>${longDate(date)}</h2>${list.length?`<span class="num ${net>=0?'pos':'neg'}">${fmtS(net)}</span>`:''}</div>`;
   if(!list.length){
     h += `<div class="empty">${db.tx.length ? t('Rien de prévu ce jour') : t('Rien pour le moment. Touche + pour ajouter ta première ligne.')}</div>`;
-  }else h += list.map(itemHtml).join('');
+  }else h += list.map(o=>itemHtml(o)).join('');
   h += `<button class="add-inline" data-act="add" data-date="${date}">+ ${t('Ajouter ce jour-là')}</button>`;
   return h;
 }
@@ -407,7 +414,7 @@ function weekHtml(){
         ${list.length?`<span class="net num ${net>=0?'pos':'neg'}">${fmtS(net)}</span>`:''}
         <button class="wk-add" data-act="add" data-date="${date}" aria-label="${t('Ajouter')}">+</button>
       </div>
-      ${list.length? list.map(itemHtml).join('') : `<div class="wk-empty">${t('Rien de prévu')}</div>`}
+      ${list.length? list.map(o=>itemHtml(o)).join('') : `<div class="wk-empty">${t('Rien de prévu')}</div>`}
     </div>`;
   }
   return h;
@@ -492,8 +499,9 @@ function renderStats(){
 /* =========================================================
    Nouveautés (bandeau en haut de l'accueil)
 ========================================================= */
-const NEWS_VERSION = '2026-10-14';
+const NEWS_VERSION = '2026-10-16';
 const NEWS = [
+  {txt:'Lignes détaillées plus lisibles : une seule ligne avec ses postes à déplier, au lieu d\'une ligne par poste.'},
   {txt:"L'application s'appelle désormais Daylance."},
   {txt:'Nouveau logo de l\'application.'},
   {txt:'Liquid Glass aussi en mode sombre, avec ou sans « auras » lumineuses (Réglages → Apparence).'},
@@ -592,7 +600,7 @@ function wUpcoming(){
   if(!occ.length) body = `<div class="sub">${t('Rien de prévu sur cette période.')}</div>`;
   else{
     const days = {}; occ.forEach(o=>(days[o.date]=days[o.date]||[]).push(o));
-    body = Object.keys(days).map((d,i)=>`<div class="up-head ${i?'':'first'}"><span style="text-transform:capitalize">${dayLabel(d)}</span><span class="num ${netOf(days[d])>=0?'pos':'neg'}">${fmtS(netOf(days[d]))}</span></div>${days[d].map(itemHtml).join('')}`).join('');
+    body = Object.keys(days).map((d,i)=>`<div class="up-head ${i?'':'first'}"><span style="text-transform:capitalize">${dayLabel(d)}</span><span class="num ${netOf(days[d])>=0?'pos':'neg'}">${fmtS(netOf(days[d]))}</span></div>${days[d].map(o=>itemHtml(o,true)).join('')}`).join('');
   }
   return `<div class="panel"><h2>${t('Prochains mouvements')}</h2>
     <div class="up-ctl"><span>${range}</span>
@@ -888,7 +896,7 @@ function openForm(init){
       <div id="f-items"></div>
       <button class="add-inline" style="margin:2px 0 4px" data-act="item-add">+ ${t('Ajouter un poste')}</button>
       <label class="field ${F.items.length?'':'hidden'}" id="f-show-w" style="margin:8px 0 0"><span>${t('Affichage dans le calendrier')}</span>
-        <select id="f-show"><option value="group" ${F.show!=='detail'?'selected':''}>${t('Groupé — une seule ligne')}</option><option value="detail" ${F.show==='detail'?'selected':''}>${t('Au détail — une ligne par poste')}</option></select>
+        <select id="f-show"><option value="group" ${F.show!=='detail'?'selected':''}>${t('Repliée — touche pour voir les postes')}</option><option value="detail" ${F.show==='detail'?'selected':''}>${t('Dépliée — postes toujours visibles')}</option></select>
       </label>
     </div>
     <label class="field"><span>${t('Libellé')}</span><input id="f-label" type="text" placeholder="${ph(F.type)}" value="${esc(F.label)}" autocomplete="off"></label>
@@ -1243,6 +1251,7 @@ document.addEventListener('click',e=>{
     case 'up-days': db.settings.upcomingDays = Math.min(60,Math.max(1,(db.settings.upcomingDays||2)+(+el.dataset.d))); save(); render(); break;
     case 'news-close': db.settings.newsSeen = NEWS_VERSION; save(); render(); break;
     case 'news-open': openNews(); break;
+    case 'grp-toggle': ui.open[el.dataset.id] = el.dataset.open!=='1'; render(); break;
     case 'quick': openForm({mode:'new', type:el.dataset.type, date:TODAY}); break;
     case 'goto-cal': ui.tab = 'cal'; ui.cursor = TODAY; render(); $('#app').scrollTop = 0; break;
     case 'home-cfg': openHomeCfg(); break;

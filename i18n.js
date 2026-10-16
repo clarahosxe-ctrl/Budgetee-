@@ -144,6 +144,7 @@ const DICT = {
     "La page Accueil résume ta journée : solde, reste à vivre, prochains mouvements, alertes, crédits et objectifs d'épargne. Tu choisis les cartes et leur ordre avec « Personnaliser l'accueil ».":'The Home page sums up your day: balance, money left to spend, upcoming entries, alerts, loans and savings goals. You choose the cards and their order with “Customize home”.',
 
     // nouveautés, compte, tutoriel (v. 2026-10-13)
+    "Lignes détaillées plus lisibles : une seule ligne avec ses postes à déplier, au lieu d'une ligne par poste.":'Clearer detailed entries: a single line with its items to expand, instead of one line per item.',
     "L'application s'appelle désormais Daylance.":'The app is now called Daylance.',
     'Nouveautés':'What\'s new','Fermer':'Close','Tout voir':'See all','Compris':'Got it',
     "Les dernières évolutions de l'application.":'The latest changes to the app.',
@@ -181,8 +182,8 @@ const DICT = {
     'Découpe cette ligne en plusieurs postes (ex. charges perso). Le montant devient la somme des postes.':'Split this entry into several items (e.g. personal expenses). The amount becomes the sum of the items.',
     'Ajouter un poste':'Add an item',
     'Affichage dans le calendrier':'Display in the calendar',
-    'Groupé — une seule ligne':'Grouped — a single line',
-    'Au détail — une ligne par poste':'Detailed — one line per item',
+    'Repliée — touche pour voir les postes':'Collapsed — tap to see the items',
+    'Dépliée — postes toujours visibles':'Expanded — items always visible',
     'Libellé':'Label','Catégorie':'Category','Date':'Date','Répétition':'Repeat',
     'Tous les':'Every','Unité':'Unit',
     'Fin de la répétition':'End of repeat','Jamais':'Never','À une date':'On a date','Après X fois':'After X times',

@@ -403,6 +403,17 @@ body.dark{
 .dark .qbtn.in,.dark .pill.in b{color:#4ADE80;}
 .dark .mini-sum div:nth-child(1){color:#4ADE80 !important;}
 .dark .pos,.dark .amt.in,.dark .net.pos{color:#4ADE80;}
+/* lignes détaillées : une carte, postes dépliables */
+.item.grp{display:block;padding:0;cursor:default;}
+.item.grp:active{transform:none;}
+.grp-main{display:flex;align-items:center;gap:12px;width:100%;padding:11px 12px 6px;text-align:left;}
+.grp-main:active{opacity:.7;}
+.grp-toggle{display:flex;align-items:center;gap:6px;width:100%;padding:4px 14px 10px 66px;font-size:12px;font-weight:700;color:var(--ink-2);text-align:left;}
+.grp-toggle i{font-style:normal;display:inline-block;transition:transform .2s;transform:rotate(-90deg);font-size:13px;}
+.grp-toggle i.up{transform:none;}
+.grp-rows{margin:0 12px 10px 66px;padding:6px 0 0;border-top:1px dashed var(--line);}
+.grp-row{display:flex;justify-content:space-between;gap:10px;padding:5px 0;font-size:13px;color:var(--ink-2);}
+.grp-row b{color:var(--ink);font-weight:650;white-space:nowrap;}
 </style>
 </head>
 <body>
