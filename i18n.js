@@ -17,7 +17,7 @@ const DICT = {
     'Loyer':'Rent','Abonnement téléphone':'Phone plan','Week-end':'Weekend trip',
 
     // récurrence
-    'Aucune':'None','Tous les jours':'Every day','Toutes les semaines':'Every week','Toutes les 2 semaines':'Every 2 weeks',
+    'Aucune':'None','Tous les jours':'Every day','Toutes les semaines':'Every week','Toutes les 2 semaines':'Every 2 weeks','Toutes les 3 semaines':'Every 3 weeks',
     'Tous les mois':'Every month','Tous les 3 mois':'Every 3 months','Tous les ans':'Every year','Personnalisée…':'Custom…',
     'jour(s)':'day(s)','semaine(s)':'week(s)','mois':'month(s)','an(s)':'year(s)',
     'jours':'days','semaines':'weeks','ans':'years',

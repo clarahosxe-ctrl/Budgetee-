@@ -193,6 +193,7 @@ const PRESETS = {
   day:{label:'Tous les jours',unit:'day',interval:1},
   week:{label:'Toutes les semaines',unit:'week',interval:1},
   biweek:{label:'Toutes les 2 semaines',unit:'week',interval:2},
+  triweek:{label:'Toutes les 3 semaines',unit:'week',interval:3},
   month:{label:'Tous les mois',unit:'month',interval:1},
   quarter:{label:'Tous les 3 mois',unit:'month',interval:3},
   year:{label:'Tous les ans',unit:'year',interval:1},
@@ -202,7 +203,7 @@ const UNIT_LABEL = {day:'jour(s)',week:'semaine(s)',month:'mois',year:'an(s)'};
 const UNIT_PLURAL = {day:'jours',week:'semaines',month:'mois',year:'ans'};
 function kindOf(rec){
   if(!rec) return 'none';
-  for(const k of ['day','week','biweek','month','quarter','year'])
+  for(const k of ['day','week','biweek','triweek','month','quarter','year'])
     if(PRESETS[k].unit===rec.unit && PRESETS[k].interval===rec.interval) return k;
   return 'custom';
 }
