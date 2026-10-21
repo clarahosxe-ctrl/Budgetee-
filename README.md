@@ -47,3 +47,7 @@ Ajouter un bloc dans `DICT` (`i18n.js`) puis l'ajouter à `LANGS` (`app.js`).
 ## Logo
 
 Source : `icons/logo-source.jpg`. Les icônes (`icons/`, `icon-180.png`) en sont dérivées. Sur un téléphone où l'appli est déjà installée, l'ancienne icône peut rester : la supprimer puis la réajouter à l'écran d'accueil.
+
+## Répétitions et jours de prélèvement
+
+Répétitions prédéfinies : aucune, chaque semaine, chaque mois, chaque année, ou **personnalisée** (tous les N jours / semaines / mois / ans). Dans une ligne regroupée en postes, chaque poste peut avoir son propre **jour du mois** ; un poste sans jour suit la date de la ligne (qui doit donc être la plus précoce du mois).

@@ -199,18 +199,18 @@ const PRESETS = {
   year:{label:'Tous les ans',unit:'year',interval:1},
   custom:{label:'Personnalisée…'},
 };
+const SELECTABLE = ['none','week','month','year','custom'];  // les autres rythmes (2 semaines, 3 mois…) passent par « Personnalisée »
 const UNIT_LABEL = {day:'jour(s)',week:'semaine(s)',month:'mois',year:'an(s)'};
 const UNIT_PLURAL = {day:'jours',week:'semaines',month:'mois',year:'ans'};
 function kindOf(rec){
   if(!rec) return 'none';
-  for(const k of ['day','week','biweek','triweek','month','quarter','year'])
+  for(const k of ['week','month','year'])
     if(PRESETS[k].unit===rec.unit && PRESETS[k].interval===rec.interval) return k;
   return 'custom';
 }
 function recLabel(rec){
-  const k = kindOf(rec);
-  if(k==='custom') return t('Tous les {n} {u}',{n:rec.interval,u:t(UNIT_PLURAL[rec.unit])});
-  return t(PRESETS[k].label);
+  for(const k of Object.keys(PRESETS)) if(PRESETS[k].unit===rec.unit && PRESETS[k].interval===rec.interval) return t(PRESETS[k].label);
+  return t('Tous les {n} {u}',{n:rec.interval,u:t(UNIT_PLURAL[rec.unit])});
 }
 function nth(start, rec, i){
   const n = rec.interval*i;
@@ -219,21 +219,32 @@ function nth(start, rec, i){
   if(rec.unit==='month') return addMonths(start,n);
   return addMonths(start,12*n);
 }
+// date d'un poste dans le mois de l'occurrence d (jour du mois propre au poste, sinon date de la ligne)
+function itemDate(d,it){
+  if(!it.day) return d;
+  const b = parse(d), dim = new Date(b.getFullYear(), b.getMonth()+1, 0).getDate();
+  return d.slice(0,8)+pad(Math.min(it.day,dim));
+}
 function expand(tx, from, to){
   const out = [];
   const items = tx.items && tx.items.length ? tx.items : null;
+  const hasDays = !!(items && items.some(i=>i.day));
+  // d = date de l'occurrence de la série ; avec des jours propres aux postes, une occurrence se répartit sur plusieurs dates
   const mk = (d,recurring) => {
-    const base = {key:tx.id+'@'+d, gkey:tx.id+'@'+d, id:tx.id, date:d, type:tx.type, label:tx.label, amount:tx.amount, cat:tx.cat, note:tx.note||'', recurring, rec:tx.rec, items, show:tx.show};
-    return [base];
+    const base = {key:tx.id+'@'+d, gkey:tx.id+'@'+d, seriesDate:d, id:tx.id, date:d, type:tx.type, label:tx.label, amount:tx.amount, cat:tx.cat, note:tx.note||'', recurring, rec:tx.rec, items, show:tx.show};
+    if(!hasDays) return d>=from && d<=to ? [base] : [];
+    const buckets = {};
+    items.forEach(it => { const bd = itemDate(d,it); if(recurring && bd<tx.date) return; (buckets[bd] = buckets[bd]||[]).push(it); });
+    return Object.keys(buckets).sort().filter(bd=>bd>=from && bd<=to).map(bd => ({...base, key:base.key+'#'+bd, date:bd, items:buckets[bd], amount:Math.round(buckets[bd].reduce((s,i)=>s+i.amount,0)*100)/100}));
   };
-  if(!tx.rec){ if(tx.date>=from && tx.date<=to) out.push(...mk(tx.date,false)); return out; }
-  const r = tx.rec;
+  if(!tx.rec) return mk(tx.date,false);
+  const r = tx.rec, pad31 = hasDays ? 31 : 0, limit = addDays(to,pad31), lower = addDays(from,-pad31);
   for(let i=0;i<4000;i++){
     const d = nth(tx.date,r,i);
-    if(d>to) break;
+    if(d>limit) break;
     if(r.end==='count' && i>=r.count) break;
     if(r.end==='date' && d>r.until) break;
-    if(d>=from && !(tx.ex && tx.ex[d])) out.push(...mk(d,true));
+    if(d>=lower && !(tx.ex && tx.ex[d])) out.push(...mk(d,true));
   }
   return out;
 }
@@ -426,7 +437,7 @@ function weekHtml(){
 ========================================================= */
 function groupsPanel(occ){
   const seen = {}, groups = [];
-  occ.filter(o=>o.items).forEach(o=>{ if(!seen[o.gkey]){ seen[o.gkey]=1; const x = db.tx.find(y=>y.id===o.id); groups.push({t:x,date:o.date,items:o.items}); } });
+  occ.filter(o=>o.items).forEach(o=>{ if(!seen[o.gkey]){ seen[o.gkey]=1; const x = db.tx.find(y=>y.id===o.id); groups.push({t:x,date:o.date,items:x.items&&x.items.length?x.items:o.items}); } });
   if(!groups.length) return `<div class="panel"><h2>${t('Détail des charges')}</h2><div class="note" style="margin-bottom:0">${t('Aucune ligne détaillée ce mois-ci. Ouvre une ligne et ajoute des postes dans « Détail ».')}</div></div>`;
   return groups.map(g=>{ const c = catOf(g.t.cat,g.t.type); const tot = g.items.reduce((s,i)=>s+i.amount,0);
     return `<div class="panel"><h2 style="display:flex;justify-content:space-between;gap:8px"><span>${c.emoji} ${esc(g.t.label)}</span><span class="num">${fmt(tot)}</span></h2>
@@ -500,8 +511,10 @@ function renderStats(){
 /* =========================================================
    Nouveautés (bandeau en haut de l'accueil)
 ========================================================= */
-const NEWS_VERSION = '2026-10-16';
+const NEWS_VERSION = '2026-10-21';
 const NEWS = [
+  {txt:"Chaque poste d'une ligne regroupée peut avoir son propre jour de prélèvement."},
+  {txt:'Répétitions simplifiées : semaine, mois, an, ou personnalisée (toutes les 2 semaines, tous les 3 mois…).'},
   {txt:'Lignes détaillées plus lisibles : une seule ligne avec ses postes à déplier, au lieu d\'une ligne par poste.'},
   {txt:"L'application s'appelle désormais Daylance."},
   {txt:'Nouveau logo de l\'application.'},
@@ -895,6 +908,7 @@ function openForm(init){
       <span class="lbl2">${t('Détail (facultatif)')}</span>
       <div class="note" style="margin:-2px 0 8px">${t('Découpe cette ligne en plusieurs postes (ex. charges perso). Le montant devient la somme des postes.')}</div>
       <div id="f-items"></div>
+      <div class="note hidden" id="f-day-note" style="margin:0 0 8px">${t('Jour : prélèvement de ce poste dans le mois (facultatif). Laisse vide pour utiliser la date de la ligne.')}</div>
       <button class="add-inline" style="margin:2px 0 4px" data-act="item-add">+ ${t('Ajouter un poste')}</button>
       <label class="field ${F.items.length?'':'hidden'}" id="f-show-w" style="margin:8px 0 0"><span>${t('Affichage dans le calendrier')}</span>
         <select id="f-show"><option value="group" ${F.show!=='detail'?'selected':''}>${t('Repliée — touche pour voir les postes')}</option><option value="detail" ${F.show==='detail'?'selected':''}>${t('Dépliée — postes toujours visibles')}</option></select>
@@ -904,7 +918,7 @@ function openForm(init){
     <span class="lbl2">${t('Catégorie')}</span><div class="chips" id="f-cats"></div>
     <label class="field"><span>${t('Date')}</span><input id="f-date" type="date" value="${F.date}"></label>
     <label class="field"><span>${t('Répétition')}</span>
-      <select id="f-rec">${Object.entries(PRESETS).map(([k,p])=>`<option value="${k}" ${k===kind?'selected':''}>${t(p.label)}</option>`).join('')}</select>
+      <select id="f-rec">${SELECTABLE.map(k=>`<option value="${k}" ${k===kind?'selected':''}>${t(PRESETS[k].label)}</option>`).join('')}</select>
     </label>
     <div id="f-custom" class="${kind==='custom'?'':'hidden'}">
       <div class="row2">
@@ -932,7 +946,10 @@ function openForm(init){
   drawCats(); drawItems();
   $('#f-items').addEventListener('input',e=>{
     const i = e.target.dataset.i; if(i===undefined) return;
-    if(e.target.dataset.f==='label') F.items[i].label = e.target.value; else F.items[i].amount = Math.abs(num(e.target.value));
+    const f = e.target.dataset.f;
+    if(f==='label') F.items[i].label = e.target.value;
+    else if(f==='day'){ const n = parseInt(e.target.value); if(n>=1 && n<=31) F.items[i].day = n; else delete F.items[i].day; }
+    else F.items[i].amount = Math.abs(num(e.target.value));
     syncTotal();
   });
   $('#f-type').addEventListener('click',e=>{
@@ -946,10 +963,11 @@ function openForm(init){
     drawCats();
   });
   $('#f-rec').addEventListener('change',e=>{
-    const v = e.target.value;
+    const v = e.target.value; drawItems();
     $('#f-custom').classList.toggle('hidden',v!=='custom');
     $('#f-end-wrap').classList.toggle('hidden',v==='none');
   });
+  $('#f-unit').addEventListener('change',()=>drawItems());
   $('#f-end').addEventListener('change',e=>{
     $('#f-until-w').classList.toggle('hidden',e.target.value!=='date');
     $('#f-count-w').classList.toggle('hidden',e.target.value!=='count');
@@ -962,12 +980,22 @@ function syncTotal(){
   a.readOnly = F.items.length>0;
   if(F.items.length) a.value = inV(itemsTotal());
 }
+// le jour de prélèvement d'un poste n'a de sens que pour un rythme mensuel/annuel (ou une ligne unique)
+function recUnitNow(){
+  const r = $('#f-rec'); if(!r) return 'month';
+  if(r.value==='none') return 'month';
+  if(r.value==='custom') return $('#f-unit') ? $('#f-unit').value : 'month';
+  return PRESETS[r.value].unit;
+}
 function drawItems(){
+  const days = ['month','year'].includes(recUnitNow());
   $('#f-items').innerHTML = F.items.map((it,i)=>`<div class="item-row">
     <input class="inp" data-i="${i}" data-f="label" type="text" placeholder="${t('Poste (ex. Téléphone)')}" value="${esc(it.label)}" autocomplete="off">
     <input class="inp amt-in" data-i="${i}" data-f="amount" type="text" inputmode="decimal" placeholder="0" value="${inV(it.amount||'')}">
+    ${days?`<input class="inp day-in" data-i="${i}" data-f="day" type="text" inputmode="numeric" maxlength="2" placeholder="${t('Jour')}" value="${it.day||''}" aria-label="${t('Jour du mois')}">`:''}
     <button class="x" data-act="item-del" data-i="${i}" aria-label="${t('Retirer')}">✕</button></div>`).join('');
   $('#f-show-w').classList.toggle('hidden',!F.items.length);
+  const dn = $('#f-day-note'); if(dn) dn.classList.toggle('hidden',!(days && F.items.length));
   syncTotal();
 }
 function drawCats(){
@@ -975,7 +1003,7 @@ function drawCats(){
     `<button class="chip ${c.id===F.cat?'on':''}" data-cat="${c.id}" style="${c.id===F.cat?`color:${c.color};background:${c.color}1f`:''}">${c.emoji} ${esc(catName(c))}</button>`).join('');
 }
 function readForm(){
-  const items = F.items.filter(i=>i.amount>0).map(i=>({id:i.id,label:i.label.trim(),amount:i.amount}));
+  const items = F.items.filter(i=>i.amount>0).map(i=>({id:i.id,label:i.label.trim(),amount:i.amount,...(i.day?{day:i.day}:{})}));
   const amount = items.length ? Math.round(items.reduce((s,i)=>s+i.amount,0)*100)/100 : Math.abs(num($('#f-amount').value));
   if(!amount){ toast(t('Entre un montant')); $('#f-amount').focus(); return null; }
   const date = $('#f-date').value; if(!date){ toast(t('Choisis une date')); return null; }
@@ -1057,7 +1085,8 @@ function deleteOcc(id,date){
 function openOcc(id,date){
   const o = occurrences(date,date).find(x=>x.id===id); if(!o) return;
   const x = db.tx.find(y=>y.id===id);
-  openForm({mode:'edit', id, origDate:date, wasRecurring:o.recurring, type:x.type, amount:x.amount, label:x.label, cat:x.cat, date, note:x.note||'', rec:x.rec, items:x.items||[], show:x.show||'group'});
+  const sd = o.seriesDate || date;
+  openForm({mode:'edit', id, origDate:sd, wasRecurring:o.recurring, type:x.type, amount:x.amount, label:x.label, cat:x.cat, date:sd, note:x.note||'', rec:x.rec, items:x.items||[], show:x.show||'group'});
 }
 
 /* ---------- catégories ---------- */

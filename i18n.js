@@ -171,6 +171,12 @@ const DICT = {
     "Réinitialiser l'apparence":'Reset appearance',
     'Océan':'Ocean','Coucher de soleil':'Sunset','Menthe':'Mint','Aurore':'Aurora','Rose':'Rose','Graphite':'Graphite',
 
+    // v. 2026-10-21
+    'Jour':'Day','Jour du mois':'Day of the month',
+    'Jour : prélèvement de ce poste dans le mois (facultatif). Laisse vide pour utiliser la date de la ligne.':'Day: when this item is charged during the month (optional). Leave empty to use the entry date.',
+    "Chaque poste d'une ligne regroupée peut avoir son propre jour de prélèvement.":'Each item of a grouped entry can have its own charge day.',
+    'Répétitions simplifiées : semaine, mois, an, ou personnalisée (toutes les 2 semaines, tous les 3 mois…).':'Simpler repeats: week, month, year, or custom (every 2 weeks, every 3 months…).',
+
     // formulaire
     "Ex. Salaire, prime…":'e.g. Salary, bonus…',
     "Ex. Courses, loyer…":'e.g. Groceries, rent…',
